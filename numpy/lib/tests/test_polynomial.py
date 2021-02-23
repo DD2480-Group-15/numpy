@@ -124,6 +124,10 @@ class TestPolynomial:
         # degree + 1
         assert_raises(ValueError, np.polyfit,
                       [1], [1], deg=0, cov=True)
+        # deg =0 && x.size==0 new testcase
+        assert_raises(ValueError, np.polyfit,
+                      [1], [1], deg=-1, cov=True)
+        assert_raises(TypeError, np.polyfit, [], [1], deg=0, cov=True)
 
         # check 1D case
         m, cov = np.polyfit(x, y+err, 2, cov=True)
