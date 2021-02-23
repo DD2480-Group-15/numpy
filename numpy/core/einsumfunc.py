@@ -8,6 +8,7 @@ import operator
 from numpy.core.multiarray import c_einsum
 from numpy.core.numeric import asanyarray, tensordot
 from numpy.core.overrides import array_function_dispatch
+from coverage_data.coverage_utils import write_it
 
 __all__ = ['einsum', 'einsum_path']
 
@@ -1349,13 +1350,19 @@ def einsum(*operands, out=None, optimize=False, **kwargs):
     ...     _ = np.einsum('ijk,ilm,njm,nlk,abc->',a,a,a,a,a, optimize=path)
 
     """
+    record = []
     # Special handling if out is specified
     specified_out = out is not None
 
     # If no optimization, run pure einsum
     if optimize is False:
+        record.append("1 ")
+
         if specified_out:
+            record.append("2 ")
+
             kwargs['out'] = out
+        write_it("einsum", record)
         return c_einsum(*operands, **kwargs)
 
     # Check the kwargs to avoid a more cryptic error later, without having to
@@ -1364,6 +1371,9 @@ def einsum(*operands, out=None, optimize=False, **kwargs):
     unknown_kwargs = [k for (k, v) in kwargs.items() if
                       k not in valid_einsum_kwargs]
     if len(unknown_kwargs):
+        record.append("3 ")
+
+        write_it("einsum", record)
         raise TypeError("Did not understand the following kwargs: %s"
                         % unknown_kwargs)
 
@@ -1374,13 +1384,21 @@ def einsum(*operands, out=None, optimize=False, **kwargs):
     # Handle order kwarg for output array, c_einsum allows mixed case
     output_order = kwargs.pop('order', 'K')
     if output_order.upper() == 'A':
+        record.append("4 ")
+
         if all(arr.flags.f_contiguous for arr in operands):
+            record.append("5 ")
+
             output_order = 'F'
         else:
+            record.append("6 ")
+
             output_order = 'C'
 
     # Start contraction loop
     for num, contraction in enumerate(contraction_list):
+        record.append("7 ")
+
         inds, idx_rm, einsum_str, remaining, blas = contraction
         tmp_operands = [operands.pop(x) for x in inds]
 
@@ -1389,17 +1407,23 @@ def einsum(*operands, out=None, optimize=False, **kwargs):
 
         # Call tensordot if still possible
         if blas:
+            record.append("8 ")
+
             # Checks have already been handled
             input_str, results_index = einsum_str.split('->')
             input_left, input_right = input_str.split(',')
 
             tensor_result = input_left + input_right
             for s in idx_rm:
+                record.append("9 ")
+
                 tensor_result = tensor_result.replace(s, "")
 
             # Find indices to contract over
             left_pos, right_pos = [], []
             for s in sorted(idx_rm):
+                record.append("10 ")
+
                 left_pos.append(input_left.find(s))
                 right_pos.append(input_right.find(s))
 
@@ -1408,14 +1432,22 @@ def einsum(*operands, out=None, optimize=False, **kwargs):
 
             # Build a new view if needed
             if (tensor_result != results_index) or handle_out:
+                record.append("11 ")
+
                 if handle_out:
+                    record.append("12 ")
+
                     kwargs["out"] = out
                 new_view = c_einsum(tensor_result + '->' + results_index, new_view, **kwargs)
 
         # Call einsum
         else:
+            record.append("13 ")
+
             # If out was specified
             if handle_out:
+                record.append("14 ")
+
                 kwargs["out"] = out
 
             # Do the contraction
@@ -1426,6 +1458,11 @@ def einsum(*operands, out=None, optimize=False, **kwargs):
         del tmp_operands, new_view
 
     if specified_out:
+        record.append("15 ")
+
+        write_it("einsum", record)
         return out
     else:
+        record.append("16 ")
+        write_it("einsum", record)
         return asanyarray(operands[0], order=output_order)
