@@ -32,6 +32,9 @@ from numpy.core import overrides
 from numpy.lib.twodim_base import triu, eye
 from numpy.linalg import lapack_lite, _umath_linalg
 
+import sys
+sys.path.append("..")
+
 
 array_function_dispatch = functools.partial(
     overrides.array_function_dispatch, module='numpy.linalg')
@@ -770,6 +773,14 @@ def _qr_dispatcher(a, mode=None):
     return (a,)
 
 
+def writeLmk(fileName, landmarks):
+    fp = open(fileName, 'a+')
+    for i in range(len(landmarks)):
+        fp.write(str(landmarks[i]))
+        fp.write(" ")
+    fp.close()
+    return True
+
 @array_function_dispatch(_qr_dispatcher)
 def qr(a, mode='reduced'):
     """
@@ -887,8 +898,13 @@ def qr(a, mode='reduced'):
     array([  1.1e-16,   1.0e+00])
 
     """
+
+    record = []
+
     if mode not in ('reduced', 'complete', 'r', 'raw'):
+        record.append(1)
         if mode in ('f', 'full'):
+            record.append(2)
             # 2013-04-01, 1.8
             msg = "".join((
                     "The 'full' option is deprecated in favor of 'reduced'.\n",
@@ -896,13 +912,16 @@ def qr(a, mode='reduced'):
             warnings.warn(msg, DeprecationWarning, stacklevel=3)
             mode = 'reduced'
         elif mode in ('e', 'economic'):
+            record.append(3)
             # 2013-04-01, 1.8
             msg = "The 'economic' option is deprecated."
             warnings.warn(msg, DeprecationWarning, stacklevel=3)
             mode = 'economic'
         else:
+            record.append(4)
+            writeLmk("./qr_coverage.txt", record)
             raise ValueError(f"Unrecognized mode '{mode}'")
-
+      
     a, wrap = _makearray(a)
     _assert_2d(a)
     m, n = a.shape
@@ -913,9 +932,11 @@ def qr(a, mode='reduced'):
     tau = zeros((mn,), t)
 
     if isComplexType(t):
+        record.append(5)
         lapack_routine = lapack_lite.zgeqrf
         routine_name = 'zgeqrf'
     else:
+        record.append(6)
         lapack_routine = lapack_lite.dgeqrf
         routine_name = 'dgeqrf'
 
@@ -924,6 +945,8 @@ def qr(a, mode='reduced'):
     work = zeros((lwork,), t)
     results = lapack_routine(m, n, a, max(1, m), tau, work, -1, 0)
     if results['info'] != 0:
+        record.append(7)
+        writeLmk("./qr_coverage.txt", record)
         raise LinAlgError('%s returns %d' % (routine_name, results['info']))
 
     # do qr decomposition
@@ -931,34 +954,50 @@ def qr(a, mode='reduced'):
     work = zeros((lwork,), t)
     results = lapack_routine(m, n, a, max(1, m), tau, work, lwork, 0)
     if results['info'] != 0:
+        record.append(8)
+        writeLmk("./qr_coverage.txt", record)
         raise LinAlgError('%s returns %d' % (routine_name, results['info']))
+    
+    record.append(22)
 
     # handle modes that don't return q
     if mode == 'r':
+        record.append(9)
         r = _fastCopyAndTranspose(result_t, a[:, :mn])
+        writeLmk("./qr_coverage.txt", record)
         return wrap(triu(r))
 
     if mode == 'raw':
+        record.append(10)
+        writeLmk("./qr_coverage.txt", record)
         return a, tau
 
     if mode == 'economic':
+        record.append(11)
         if t != result_t :
+            record.append(12)
             a = a.astype(result_t, copy=False)
+        
+        writeLmk("./qr_coverage.txt", record)
         return wrap(a.T)
 
     #  generate q from a
     if mode == 'complete' and m > n:
+        record.append(13)
         mc = m
         q = empty((m, m), t)
     else:
+        record.append(14)
         mc = mn
         q = empty((n, m), t)
     q[:n] = a
 
     if isComplexType(t):
+        record.append(15)
         lapack_routine = lapack_lite.zungqr
         routine_name = 'zungqr'
     else:
+        record.append(16)
         lapack_routine = lapack_lite.dorgqr
         routine_name = 'dorgqr'
 
@@ -967,6 +1006,8 @@ def qr(a, mode='reduced'):
     work = zeros((lwork,), t)
     results = lapack_routine(m, mc, mn, q, max(1, m), tau, work, -1, 0)
     if results['info'] != 0:
+        record.append(17)
+        writeLmk("./qr_coverage.txt", record)
         raise LinAlgError('%s returns %d' % (routine_name, results['info']))
 
     # compute q
@@ -974,11 +1015,15 @@ def qr(a, mode='reduced'):
     work = zeros((lwork,), t)
     results = lapack_routine(m, mc, mn, q, max(1, m), tau, work, lwork, 0)
     if results['info'] != 0:
+        record.append(18)
+        writeLmk("./qr_coverage.txt", record)
         raise LinAlgError('%s returns %d' % (routine_name, results['info']))
 
     q = _fastCopyAndTranspose(result_t, q[:mc])
     r = _fastCopyAndTranspose(result_t, a[:, :mc])
-
+    
+    record.append(19)
+    writeLmk("./qr_coverage.txt", record)
     return wrap(q), wrap(triu(r))
 
 
