@@ -122,12 +122,18 @@ class TestPolynomial:
         # Check exception when too few points for variance estimate. Note that
         # the estimate requires the number of data points to exceed
         # degree + 1
+        record=[]
         assert_raises(ValueError, np.polyfit,
                       [1], [1], deg=0, cov=True)
+        record.append(13)
+        record.append(15)
+        record.append(16)
         # deg =0 && x.size==0 new testcase
         assert_raises(ValueError, np.polyfit,
                       [1], [1], deg=-1, cov=True)
+        record.append(1)
         assert_raises(TypeError, np.polyfit, [], [1], deg=0, cov=True)
+        record.append(3)
 
         # check 1D case
         m, cov = np.polyfit(x, y+err, 2, cov=True)
@@ -138,7 +144,14 @@ class TestPolynomial:
                 [ 0.8163, -2.1224,  1.161 ]]
         assert_almost_equal(val0, cov, decimal=4)
 
+        # myenhance
+        m, resids, rank, s, rcond = np.polyfit(x, y + err, 2, full=True,cov=True)
+        est = [3.8571, 0.2857, 1.619]
+        assert_almost_equal(est, m, decimal=4)
+        record.append(12)
+
         m2, cov2 = np.polyfit(x, y+err, 2, w=weights, cov=True)
+        record.append(7)
         assert_almost_equal([4.8927, -1.0177, 1.7768], m2, decimal=4)
         val = [[ 4.3964, -5.0052,  0.4878],
                [-5.0052,  6.8067, -0.9089],
@@ -156,11 +169,12 @@ class TestPolynomial:
         y = y[:, np.newaxis]
         c = c[:, np.newaxis]
         assert_almost_equal(c, np.polyfit(x, y, 2))
+        record.append(10)
         # check 2D (n,2) case
         yy = np.concatenate((y, y), axis=1)
         cc = np.concatenate((c, c), axis=1)
         assert_almost_equal(cc, np.polyfit(x, yy, 2))
-
+        record.append(17)
         m, cov = np.polyfit(x, yy + np.array(err)[:, np.newaxis], 2, cov=True)
         assert_almost_equal(est, m[:, 0], decimal=4)
         assert_almost_equal(est, m[:, 1], decimal=4)
@@ -177,6 +191,7 @@ class TestPolynomial:
         # Without scaling, since reduced chi2 is 1, the result should be the same.
         mean, cov = np.polyfit(np.zeros(y.shape[0]), y, w=np.ones(y.shape[0]),
                                deg=0, cov="unscaled")
+        record.append(14)
         assert_allclose(mean.std(), 0.5, atol=0.01)
         assert_almost_equal(np.sqrt(cov.mean()), 0.5)
         # If we estimate our errors wrong, no change with scaling:
@@ -189,6 +204,15 @@ class TestPolynomial:
         mean, cov = np.polyfit(np.zeros(y.shape[0]), y, w=w, deg=0, cov="unscaled")
         assert_allclose(mean.std(), 0.5, atol=0.01)
         assert_almost_equal(np.sqrt(cov.mean()), 0.25)
+
+        def writeLmk(fileName, landmarks):
+            fp = open(fileName, 'a+')
+            for i in range(len(landmarks)):
+                fp.write(str(landmarks[i]))
+                fp.write(" ")
+            fp.close()
+            return True
+        writeLmk("/Users/zehuag/a3_f/numpy/numpy/lib/tests/My_realbc.txt",record)
 
     def test_objects(self):
         from decimal import Decimal
