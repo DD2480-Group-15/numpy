@@ -1024,6 +1024,7 @@ def qr(a, mode='reduced'):
     
     record.append(19)
     writeLmk("./qr_coverage.txt", record)
+    # 68 % covered
     return wrap(q), wrap(triu(r))
 
 
