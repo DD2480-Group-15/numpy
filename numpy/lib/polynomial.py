@@ -665,7 +665,6 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
     # set rcond
     if rcond is None:
         record.append(6)
-        record.append()
         rcond = len(x)*finfo(x.dtype).eps
 
     # set up least squares equation for powers of x
