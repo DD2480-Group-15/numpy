@@ -3,7 +3,7 @@ from numpy.testing import (
     assert_, assert_equal, assert_array_equal, assert_almost_equal,
     assert_array_almost_equal, assert_raises, assert_allclose
     )
-
+import warnings
 
 class TestPolynomial:
     def test_poly1d_str_and_repr(self):
@@ -122,6 +122,23 @@ class TestPolynomial:
         assert_raises(TypeError, np.polyfit, [[2,3],[2,3]], [1], deg=2, cov=True)
         #zehua 4 y.ndim >2
         assert_raises(TypeError, np.polyfit, [1.,2.,3.], [[[1.,2.],[2.,3.]],[[9.,3.],[3.,4.]]], deg=2, cov=True)
+
+    def test_polyfit_philip(self):
+        # x.shape[0] != y.shape[0]
+        assert_raises(TypeError, np.polyfit, [1], [1,2], deg=2)
+        # w.ndim != 1:
+        assert_raises(TypeError, np.polyfit, [1], [1], deg=2, w=[[1],[1]])
+        # w.shape[0] != y.shape[0]
+        assert_raises(TypeError, np.polyfit, [1], [1], deg=2, w=[1,2,3])
+        # if rank != order and not full:
+        with warnings.catch_warnings(record=True) as w:
+            # Cause all warnings to always be triggered.
+            warnings.simplefilter("always")
+            # Trigger a warning.
+            np.polyfit([1], [1], deg=10, full=False)
+            # Verify some things
+            assert_(len(w) == 1)
+            assert_("Polyfit may be poorly conditioned" in str(w[-1].message))
 
 
     def test_polyfit(self):
