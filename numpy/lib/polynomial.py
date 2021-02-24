@@ -450,6 +450,24 @@ def _polyfit_dispatcher(x, y, deg, rcond=None, full=None, w=None, cov=None):
     return (x, y, w)
 
 
+#Split the function
+def input_test_polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
+    if deg < 0:
+        raise ValueError("expected deg >= 0")
+    if x.ndim != 1:
+        raise TypeError("expected 1D vector for x")
+    if x.size == 0:
+        raise TypeError("expected non-empty vector for x")
+    if y.ndim < 1 or y.ndim > 2:
+        raise TypeError("expected 1D or 2D array for y")
+    if x.shape[0] != y.shape[0]:
+        raise TypeError("expected x and y to have same length")
+
+def non_w_test(x, y, deg, rcond, full, w, cov):
+    if w.ndim != 1:
+        raise TypeError("expected a 1-d array for weights")
+    if w.shape[0] != y.shape[0]:
+        raise TypeError("expected w and y to have the same length")
 @array_function_dispatch(_polyfit_dispatcher)
 def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
     """
@@ -494,11 +512,11 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
     cov : bool or str, optional
         If given and not `False`, return not just the estimate but also its
         covariance matrix. By default, the covariance are scaled by
-        chi2/dof, where dof = M - (deg + 1), i.e., the weights are presumed 
-        to be unreliable except in a relative sense and everything is scaled 
-        such that the reduced chi2 is unity. This scaling is omitted if 
-        ``cov='unscaled'``, as is relevant for the case that the weights are 
-        1/sigma**2, with sigma known to be a reliable estimate of the 
+        chi2/dof, where dof = M - (deg + 1), i.e., the weights are presumed
+        to be unreliable except in a relative sense and everything is scaled
+        such that the reduced chi2 is unity. This scaling is omitted if
+        ``cov='unscaled'``, as is relevant for the case that the weights are
+        1/sigma**2, with sigma known to be a reliable estimate of the
         uncertainty.
 
     Returns
@@ -620,21 +638,34 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
     order = int(deg) + 1
     x = NX.asarray(x) + 0.0
     y = NX.asarray(y) + 0.0
-
+    record=[]
     # check arguments.
-    if deg < 0:
+    """if deg < 0:
+        record.append(1)
+        writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt", record)
         raise ValueError("expected deg >= 0")
     if x.ndim != 1:
+        record.append(2)
+        writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt", record)
         raise TypeError("expected 1D vector for x")
     if x.size == 0:
+        record.append(3)
+        writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt", record)
         raise TypeError("expected non-empty vector for x")
     if y.ndim < 1 or y.ndim > 2:
+        record.append(4)
+        writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt", record)
         raise TypeError("expected 1D or 2D array for y")
     if x.shape[0] != y.shape[0]:
+        record.append(5)
+        writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt", record)
         raise TypeError("expected x and y to have same length")
-
+"""
+    input_test_polyfit(x,y,deg,rcond,full,w,cov)
     # set rcond
     if rcond is None:
+        record.append(6)
+        record.append()
         rcond = len(x)*finfo(x.dtype).eps
 
     # set up least squares equation for powers of x
@@ -643,13 +674,21 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
 
     # apply weighting
     if w is not None:
+        record.append(7)
         w = NX.asarray(w) + 0.0
-        if w.ndim != 1:
+        #split
+        non_w_test(x,y,deg,rcond,full,w,cov)
+        """if w.ndim != 1:
+            record.append(8)
+            writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt", record)
             raise TypeError("expected a 1-d array for weights")
         if w.shape[0] != y.shape[0]:
-            raise TypeError("expected w and y to have the same length")
+            record.append(9)
+            writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt", record)
+            raise TypeError("expected w and y to have the same length")"""
         lhs *= w[:, NX.newaxis]
         if rhs.ndim == 2:
+            record.append(10)
             rhs *= w[:, NX.newaxis]
         else:
             rhs *= w
@@ -662,18 +701,24 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
 
     # warn on rank reduction, which indicates an ill conditioned matrix
     if rank != order and not full:
+        record.append(11)
         msg = "Polyfit may be poorly conditioned"
         warnings.warn(msg, RankWarning, stacklevel=4)
 
     if full:
+        record.append(12)
         return c, resids, rank, s, rcond
     elif cov:
+        record.append(13)
         Vbase = inv(dot(lhs.T, lhs))
         Vbase /= NX.outer(scale, scale)
         if cov == "unscaled":
+            record.append(14)
             fac = 1
         else:
             if len(x) <= order:
+                record.append(15)
+                writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt",record)
                 raise ValueError("the number of data points must exceed order "
                                  "to scale the covariance matrix")
             # note, this used to be: fac = resids / (len(x) - order - 2.0)
@@ -682,10 +727,15 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
             # (see gh-11196 and gh-11197)
             fac = resids / (len(x) - order)
         if y.ndim == 1:
+            record.append(16)
+            writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt",record)
             return c, Vbase * fac
         else:
+            writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt",record)
             return c, Vbase[:,:, NX.newaxis] * fac
     else:
+        record.append(17)
+        writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt",record)
         return c
 
 
