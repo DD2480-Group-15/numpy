@@ -799,7 +799,13 @@ def _gradient_dispatcher(f, *varargs, axis=None, edge_order=None):
     yield f
     yield from varargs
 
-
+def writeLmk(fileName, landmarks):
+    fp = open(fileName, 'a+')
+    for i in range(len(landmarks)):
+        fp.write(str(landmarks[i]))
+        fp.write(" ")
+    fp.close()
+    return True
 @array_function_dispatch(_gradient_dispatcher)
 def gradient(f, *varargs, axis=None, edge_order=1):
     """
@@ -975,10 +981,17 @@ def gradient(f, *varargs, axis=None, edge_order=1):
             `PDF <http://www.ams.org/journals/mcom/1988-51-184/
             S0025-5718-1988-0935077-0/S0025-5718-1988-0935077-0.pdf>`_.
     """
+
     f = np.asanyarray(f)
     N = f.ndim  # number of dimensions
+    record=[]
+    if edge_order > 2:
+        record.append(11)
+        writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
+        raise ValueError("'edge_order' greater than 2 not supported")
 
     if axis is None:
+        record.append(1)
         axes = tuple(range(N))
     else:
         axes = _nx.normalize_axis_tuple(axis, N)
@@ -986,24 +999,37 @@ def gradient(f, *varargs, axis=None, edge_order=1):
     len_axes = len(axes)
     n = len(varargs)
     if n == 0:
+        record.append(2)
         # no spacing argument - use 1 in all axes
         dx = [1.0] * len_axes
     elif n == 1 and np.ndim(varargs[0]) == 0:
+        record.append(3)
         # single scalar for all axes
         dx = varargs * len_axes
     elif n == len_axes:
+        record.append(4)
         # scalar or 1d array for each axis
         dx = list(varargs)
         for i, distances in enumerate(dx):
+            if 5 not in record:
+                record.append(5)
             distances = np.asanyarray(distances)
             if distances.ndim == 0:
+                if 6 not in record:
+                    record.append(6)
                 continue
             elif distances.ndim != 1:
+                if 7 not in record:
+                    record.append(7)
+                writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt",record)
                 raise ValueError("distances must be either scalars or 1d")
             if len(distances) != f.shape[axes[i]]:
+                record.append(8)
+                writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
                 raise ValueError("when 1d, distances must match "
                                  "the length of the corresponding dimension")
             if np.issubdtype(distances.dtype, np.integer):
+                record.append(9)
                 # Convert numpy integer types to float64 to avoid modular
                 # arithmetic in np.diff(distances).
                 distances = distances.astype(np.float64)
@@ -1011,13 +1037,13 @@ def gradient(f, *varargs, axis=None, edge_order=1):
             # if distances are constant reduce to the scalar case
             # since it brings a consistent speedup
             if (diffx == diffx[0]).all():
+                record.append(10)
                 diffx = diffx[0]
             dx[i] = diffx
     else:
+        writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
         raise TypeError("invalid number of arguments")
 
-    if edge_order > 2:
-        raise ValueError("'edge_order' greater than 2 not supported")
 
     # use central differences on interior and one-sided differences on the
     # endpoints. This preserves second order-accuracy over the full domain.
@@ -1032,24 +1058,32 @@ def gradient(f, *varargs, axis=None, edge_order=1):
 
     otype = f.dtype
     if otype.type is np.datetime64:
+        record.append(12)
         # the timedelta dtype with the same unit information
         otype = np.dtype(otype.name.replace('datetime', 'timedelta'))
         # view as timedelta to allow addition
         f = f.view(otype)
     elif otype.type is np.timedelta64:
+        record.append(13)
         pass
     elif np.issubdtype(otype, np.inexact):
+        record.append(14)
         pass
     else:
         # All other types convert to floating point.
         # First check if f is a numpy integer type; if so, convert f to float64
         # to avoid modular arithmetic when computing the changes in f.
         if np.issubdtype(otype, np.integer):
+            record.append(15)
             f = f.astype(np.float64)
         otype = np.float64
 
     for axis, ax_dx in zip(axes, dx):
+        if 16 not in record:
+            record.append(16)
         if f.shape[axis] < edge_order + 1:
+            record.append(17)
+            writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
             raise ValueError(
                 "Shape of array too small to calculate a numerical gradient, "
                 "at least (edge_order + 1) elements are required.")
@@ -1066,6 +1100,7 @@ def gradient(f, *varargs, axis=None, edge_order=1):
         slice4[axis] = slice(2, None)
 
         if uniform_spacing:
+            record.append(18)
             out[tuple(slice1)] = (f[tuple(slice4)] - f[tuple(slice2)]) / (2. * ax_dx)
         else:
             dx1 = ax_dx[0:-1]
@@ -1082,6 +1117,7 @@ def gradient(f, *varargs, axis=None, edge_order=1):
 
         # Numerical differentiation: 1st order edges
         if edge_order == 1:
+            record.append(19)
             slice1[axis] = 0
             slice2[axis] = 1
             slice3[axis] = 0
@@ -1103,10 +1139,12 @@ def gradient(f, *varargs, axis=None, edge_order=1):
             slice3[axis] = 1
             slice4[axis] = 2
             if uniform_spacing:
+                record.append(20)
                 a = -1.5 / ax_dx
                 b = 2. / ax_dx
                 c = -0.5 / ax_dx
             else:
+
                 dx1 = ax_dx[0]
                 dx2 = ax_dx[1]
                 a = -(2. * dx1 + dx2)/(dx1 * (dx1 + dx2))
@@ -1120,6 +1158,7 @@ def gradient(f, *varargs, axis=None, edge_order=1):
             slice3[axis] = -2
             slice4[axis] = -1
             if uniform_spacing:
+                record.append(21)
                 a = 0.5 / ax_dx
                 b = -2. / ax_dx
                 c = 1.5 / ax_dx
@@ -1141,8 +1180,11 @@ def gradient(f, *varargs, axis=None, edge_order=1):
         slice4[axis] = slice(None)
 
     if len_axes == 1:
+        record.append(22)
+        writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
         return outvals[0]
     else:
+        writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
         return outvals
 
 

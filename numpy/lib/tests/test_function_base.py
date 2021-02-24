@@ -891,6 +891,7 @@ class TestGradient:
     def test_basic(self):
         v = [[1, 1], [3, 4]]
         x = np.array(v)
+        v1= [[1., 1.], [3., 4.]]
         dx = [np.array([[2., 3.], [2., 3.]]),
               np.array([[0., 0.], [1., 1.]])]
         assert_array_equal(gradient(x), dx)
@@ -920,10 +921,19 @@ class TestGradient:
         # 2d coordinate arguments are not yet allowed
         assert_raises_regex(ValueError, '.*scalars or 1d',
             gradient, f_2d, np.stack([dx]*2, axis=-1), 1)
+    #zehuaguo
+    def test_edge(self):
+        f = np.array([0, 2., 3., 4., 5., 5.])
+        f = np.tile(f, (6, 1)) + f.reshape(-1, 1)
+        assert_raises(ValueError, gradient, f,1,axis=0,edge_order=3)
+        v = gradient(np.arange(5), 3.)
+        assert_array_almost_equal(gradient(np.arange(5.), 3.),v)
+
 
     def test_badargs(self):
         f_2d = np.arange(25).reshape(5, 5)
         x = np.cumsum(np.ones(5))
+        #zehuaguo
 
         # wrong sizes
         assert_raises(ValueError, gradient, f_2d, x, np.ones(2))
