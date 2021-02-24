@@ -718,7 +718,7 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
         else:
             if len(x) <= order:
                 record.append(15)
-                writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt",record)
+                #writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt",record)
                 raise ValueError("the number of data points must exceed order "
                                  "to scale the covariance matrix")
             # note, this used to be: fac = resids / (len(x) - order - 2.0)
@@ -728,14 +728,14 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
             fac = resids / (len(x) - order)
         if y.ndim == 1:
             record.append(16)
-            writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt",record)
+            #writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt",record)
             return c, Vbase * fac
         else:
-            writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt",record)
+            #writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt",record)
             return c, Vbase[:,:, NX.newaxis] * fac
     else:
         record.append(17)
-        writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt",record)
+        #writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt",record)
         return c
 
 
