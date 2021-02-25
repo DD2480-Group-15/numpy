@@ -721,6 +721,20 @@ def compute_the_path(path_type, input_list, indices, output_set,
     return path
 
 
+def set_blas(bool1,tmp_inputs, out_inds, idx_removed):
+
+    if not bool1:
+        return _can_dot(tmp_inputs, out_inds, idx_removed)
+    else:
+        return False
+
+def last_contraction(cnum, path, output_subscript, dimension_dict, out_inds):
+    if (cnum - len(path)) == -1:
+        return output_subscript
+    else:
+        sort_result = [(dimension_dict[ind], ind) for ind in out_inds]
+        return "".join([x[1] for x in sorted(sort_result)])
+
 def build_out_broadcast_indices(tnum, char, dim, broadcast_indices, dimension_dict):
     # Build out broadcast indices
     if dim == 1:
@@ -948,18 +962,11 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
         new_bcast_inds = bcast - idx_removed
 
         # If we're broadcasting, nix blas
-        if not len(idx_removed & bcast):
-            do_blas = _can_dot(tmp_inputs, out_inds, idx_removed)
-        else:
-            do_blas = False
-
+        """ refactor"""
+        do_blas = set_blas(len(idx_removed & bcast), tmp_inputs, out_inds, idx_removed)
         # Last contraction
-        if (cnum - len(path)) == -1:
-            idx_result = output_subscript
-        else:
-            sort_result = [(dimension_dict[ind], ind) for ind in out_inds]
-            idx_result = "".join([x[1] for x in sorted(sort_result)])
-
+        idx_result = last_contraction(cnum, path, output_subscript, dimension_dict, out_inds)
+        """ refactor"""
         input_list.append(idx_result)
         broadcast_indices.append(new_bcast_inds)
         einsum_str = ",".join(tmp_inputs) + "->" + idx_result
