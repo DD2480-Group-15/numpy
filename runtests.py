@@ -368,6 +368,10 @@ def main(argv):
 
     check_coverage(16, "einsum")
     check_coverage(24, "einsum_path")
+    check_coverage(17, "polyfit")
+    check_coverage(23, "gradient")
+    check_coverage(19, "qr")
+
     if isinstance(result, bool):
         sys.exit(0 if result else 1)
     elif result.wasSuccessful():
