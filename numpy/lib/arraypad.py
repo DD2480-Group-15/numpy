@@ -6,10 +6,23 @@ of an n-dimensional array.
 import numpy as np
 from numpy.core.overrides import array_function_dispatch
 from numpy.lib.index_tricks import ndindex
+import os
+import sys
+
+sys.path.append(os.path.abspath("."))
+
+
 
 
 __all__ = ['pad']
 
+
+def writeToFile(method_name, record):
+    dirname = os.path.dirname(__file__)
+    filename = os.path.join(dirname, mehtod_name+ "_coverage.txt")
+    f = open(filename, "a+")
+    f.writelines(record)
+    f.close()
 
 ###############################################################################
 # Private utility functions.
@@ -733,10 +746,14 @@ def pad(array, pad_width, mode='constant', **kwargs):
            [100, 100, 100, 100, 100, 100, 100],
            [100, 100, 100, 100, 100, 100, 100]])
     """
+    record = []
+
     array = np.asarray(array)
     pad_width = np.asarray(pad_width)
 
     if not pad_width.dtype.kind == 'i':
+        record.append(1)
+        writeToFile('/pad_coverage.txt',record)
         raise TypeError('`pad_width` must be of integral type.')
 
     # Broadcast to shape (array.ndim, 2)
@@ -744,12 +761,16 @@ def pad(array, pad_width, mode='constant', **kwargs):
 
     if callable(mode):
         # Old behavior: Use user-supplied function with np.apply_along_axis
+        record.append(2)
+        writeToFile('/pad_coverage.txt',record)
         function = mode
         # Create a new zero padded array
         padded, _ = _pad_simple(array, pad_width, fill_value=0)
         # And apply along each axis
 
         for axis in range(padded.ndim):
+            record.append(2)
+            writeToFile('/pad_coverage.txt',record)
             # Iterate using ndindex as in apply_along_axis, but assuming that
             # function operates inplace on the padded array.
 
@@ -761,6 +782,8 @@ def pad(array, pad_width, mode='constant', **kwargs):
             inds = ndindex(view.shape[:-1])
             inds = (ind + (Ellipsis,) for ind in inds)
             for ind in inds:
+                record.append(3)
+                writeToFile('/pad_coverage.txt',record)
                 function(view[ind], pad_width[axis], axis, kwargs)
 
         return padded
@@ -778,10 +801,16 @@ def pad(array, pad_width, mode='constant', **kwargs):
         'symmetric': ['reflect_type'],
     }
     try:
+        record.append(4)
+        writeToFile('/pad_coverage.txt',record)
         unsupported_kwargs = set(kwargs) - set(allowed_kwargs[mode])
     except KeyError:
+        record.append(5)
+        writeToFile('/pad_coverage.txt',record)
         raise ValueError("mode '{}' is not supported".format(mode)) from None
     if unsupported_kwargs:
+        record.append(6)
+        writeToFile('/pad_coverage.txt',record)
         raise ValueError("unsupported keyword arguments for mode '{}': {}"
                          .format(mode, unsupported_kwargs))
 
@@ -796,6 +825,8 @@ def pad(array, pad_width, mode='constant', **kwargs):
     axes = range(padded.ndim)
 
     if mode == "constant":
+        record.append(7)
+        writeToFile('/pad_coverage.txt',record)
         values = kwargs.get("constant_values", 0)
         values = _as_pairs(values, padded.ndim)
         for axis, width_pair, value_pair in zip(axes, pad_width, values):
@@ -803,14 +834,22 @@ def pad(array, pad_width, mode='constant', **kwargs):
             _set_pad_area(roi, axis, width_pair, value_pair)
 
     elif mode == "empty":
+        record.append(8)
+        writeToFile('/pad_coverage.txt',record)
         pass  # Do nothing as _pad_simple already returned the correct result
 
     elif array.size == 0:
+        record.append(9)
+        writeToFile('/pad_coverage.txt',record)
         # Only modes "constant" and "empty" can extend empty axes, all other
         # modes depend on `array` not being empty
         # -> ensure every empty axis is only "padded with 0"
         for axis, width_pair in zip(axes, pad_width):
+            record.append(10)
+            writeToFile('/pad_coverage.txt',record)
             if array.shape[axis] == 0 and any(width_pair):
+                record.append(11)
+                writeToFile('/pad_coverage.txt',record)
                 raise ValueError(
                     "can't extend empty axis {} using modes other than "
                     "'constant' or 'empty'".format(axis)
@@ -819,33 +858,52 @@ def pad(array, pad_width, mode='constant', **kwargs):
         # returned the correct result
 
     elif mode == "edge":
+        record.append(12)
+        writeToFile('/pad_coverage.txt',record)
         for axis, width_pair in zip(axes, pad_width):
+            record.append(13)
+            writeToFile('/pad_coverage.txt',record)
             roi = _view_roi(padded, original_area_slice, axis)
             edge_pair = _get_edges(roi, axis, width_pair)
             _set_pad_area(roi, axis, width_pair, edge_pair)
 
     elif mode == "linear_ramp":
+        record.append(14)
+        writeToFile('/pad_coverage.txt',record)
         end_values = kwargs.get("end_values", 0)
         end_values = _as_pairs(end_values, padded.ndim)
         for axis, width_pair, value_pair in zip(axes, pad_width, end_values):
+            record.append(15)
+            writeToFile('/pad_coverage.txt',record)
             roi = _view_roi(padded, original_area_slice, axis)
             ramp_pair = _get_linear_ramps(roi, axis, width_pair, value_pair)
             _set_pad_area(roi, axis, width_pair, ramp_pair)
 
     elif mode in stat_functions:
+        record.append(16)
+        writeToFile('/pad_coverage.txt',record)
+
         func = stat_functions[mode]
         length = kwargs.get("stat_length", None)
         length = _as_pairs(length, padded.ndim, as_index=True)
         for axis, width_pair, length_pair in zip(axes, pad_width, length):
+            record.append(17)
+            writeToFile('/pad_coverage.txt',record)
             roi = _view_roi(padded, original_area_slice, axis)
             stat_pair = _get_stats(roi, axis, width_pair, length_pair, func)
             _set_pad_area(roi, axis, width_pair, stat_pair)
 
     elif mode in {"reflect", "symmetric"}:
+        record.append(18)
+        writeToFile('/pad_coverage.txt',record)
         method = kwargs.get("reflect_type", "even")
         include_edge = True if mode == "symmetric" else False
         for axis, (left_index, right_index) in zip(axes, pad_width):
+            record.append(19)
+            writeToFile('/pad_coverage.txt',record)
             if array.shape[axis] == 1 and (left_index > 0 or right_index > 0):
+                record.append(20)
+                writeToFile('/pad_coverage.txt',record)
                 # Extending singleton dimension for 'reflect' is legacy
                 # behavior; it really should raise an error.
                 edge_pair = _get_edges(padded, axis, (left_index, right_index))
@@ -855,6 +913,8 @@ def pad(array, pad_width, mode='constant', **kwargs):
 
             roi = _view_roi(padded, original_area_slice, axis)
             while left_index > 0 or right_index > 0:
+                record.append(21)
+                writeToFile('/pad_coverage.txt',record)
                 # Iteratively pad until dimension is filled with reflected
                 # values. This is necessary if the pad area is larger than
                 # the length of the original values in the current dimension.
@@ -864,9 +924,15 @@ def pad(array, pad_width, mode='constant', **kwargs):
                 )
 
     elif mode == "wrap":
+        record.append(22)
+        writeToFile('/pad_coverage.txt',record)
         for axis, (left_index, right_index) in zip(axes, pad_width):
+            record.append(23)
+            writeToFile('/pad_coverage.txt',record)
             roi = _view_roi(padded, original_area_slice, axis)
             while left_index > 0 or right_index > 0:
+                record.append(24)
+                writeToFile('/pad_coverage.txt',record)
                 # Iteratively pad until dimension is filled with wrapped
                 # values. This is necessary if the pad area is larger than
                 # the length of the original values in the current dimension.

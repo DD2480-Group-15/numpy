@@ -17,6 +17,10 @@ __all__ = ['matrix_power', 'solve', 'tensorsolve', 'tensorinv', 'inv',
 import functools
 import operator
 import warnings
+import sys
+import os
+sys.path.append("..")
+
 
 from numpy.core import (
     array, asarray, zeros, empty, empty_like, intc, single, double,
@@ -68,6 +72,7 @@ class LinAlgError(Exception):
     numpy.linalg.LinAlgError: Singular matrix
 
     """
+
 
 
 def _determine_error_states():
@@ -393,6 +398,14 @@ def solve(a, b):
     r = gufunc(a, b, signature=signature, extobj=extobj)
 
     return wrap(r.astype(result_t, copy=False))
+
+def writeToFile(fileName, landmarks):
+    fp = open(fileName, 'a+')
+    for i in range(len(landmarks)):
+        fp.write(str(landmarks[i]))
+        fp.write(" ")
+    fp.close()
+    return True
 
 
 def _tensorinv_dispatcher(a, ind=None):
@@ -2511,103 +2524,186 @@ def norm(x, ord=None, axis=None, keepdims=False):
     (3.7416573867739413, 11.224972160321824)
 
     """
+    record = []
     x = asarray(x)
 
     if not issubclass(x.dtype.type, (inexact, object_)):
         x = x.astype(float)
+        record.append(1)
+        writeToFile('\norm_to_text.txt',record)
+
 
     # Immediately handle some default, simple, fast, and common cases.
     if axis is None:
         ndim = x.ndim
+        record.append(2)
+        writeToFile('\norm_to_text.txt',record)
         if ((ord is None) or
             (ord in ('f', 'fro') and ndim == 2) or
             (ord == 2 and ndim == 1)):
 
             x = x.ravel(order='K')
+            record.append(3)
+            writeToFile('\norm_to_text.txt',record)
+
             if isComplexType(x.dtype.type):
                 sqnorm = dot(x.real, x.real) + dot(x.imag, x.imag)
+                record.append(4)
+                writeToFile('\norm_to_text.txt',record)
             else:
                 sqnorm = dot(x, x)
+                record.append(5)
+                writeToFile('\norm_to_text.txt',record)
             ret = sqrt(sqnorm)
             if keepdims:
+                record.append(6)
+                writeToFile('\norm_to_text.txt',record)
                 ret = ret.reshape(ndim*[1])
             return ret
 
     # Normalize the `axis` argument to a tuple.
     nd = x.ndim
     if axis is None:
+        record.append(7)
+        writeToFile('\norm_to_text.txt',record)
         axis = tuple(range(nd))
     elif not isinstance(axis, tuple):
+        record.append(8)
+        writeToFile('\norm_to_text.txt',record)
+
         try:
             axis = int(axis)
+            record.append(9)
+            writeToFile('\norm_to_text.txt',record)
         except Exception as e:
             raise TypeError("'axis' must be None, an integer or a tuple of integers") from e
         axis = (axis,)
 
     if len(axis) == 1:
         if ord == Inf:
+            record.append(10)
+            writeToFile('\norm_to_text.txt',record)
             return abs(x).max(axis=axis, keepdims=keepdims)
+
         elif ord == -Inf:
+            record.append(11)
+            writeToFile('\norm_to_text.txt',record)
             return abs(x).min(axis=axis, keepdims=keepdims)
         elif ord == 0:
             # Zero norm
+            record.append(12)
+            writeToFile('\norm_to_text.txt',record)
             return (x != 0).astype(x.real.dtype).sum(axis=axis, keepdims=keepdims)
         elif ord == 1:
             # special case for speedup
+            record.append(13)
+            writeToFile('\norm_to_text.txt',record)
             return add.reduce(abs(x), axis=axis, keepdims=keepdims)
         elif ord is None or ord == 2:
             # special case for speedup
             s = (x.conj() * x).real
+            record.append(14)
+            writeToFile('\norm_to_text.txt',record)
             return sqrt(add.reduce(s, axis=axis, keepdims=keepdims))
         # None of the str-type keywords for ord ('fro', 'nuc')
         # are valid for vectors
         elif isinstance(ord, str):
+            record.append(15)
+            writeToFile('\norm_to_text.txt',record)
             raise ValueError(f"Invalid norm order '{ord}' for vectors")
         else:
             absx = abs(x)
             absx **= ord
             ret = add.reduce(absx, axis=axis, keepdims=keepdims)
             ret **= (1 / ord)
+            record.append(16)
+            writeToFile('\norm_to_text.txt',record)
             return ret
     elif len(axis) == 2:
         row_axis, col_axis = axis
         row_axis = normalize_axis_index(row_axis, nd)
         col_axis = normalize_axis_index(col_axis, nd)
+        record.append(17)
+        writeToFile('\norm_to_text.txt',record)
         if row_axis == col_axis:
+            record.append(18)
+            writeToFile('\norm_to_text.txt',record)
             raise ValueError('Duplicate axes given.')
         if ord == 2:
             ret =  _multi_svd_norm(x, row_axis, col_axis, amax)
+            record.append(19)
+            writeToFile('\norm_to_text.txt',record)
         elif ord == -2:
             ret = _multi_svd_norm(x, row_axis, col_axis, amin)
+            record.append(20)
+            writeToFile('\norm_to_text.txt',record)
         elif ord == 1:
+            record.append(21)
+            writeToFile('\norm_to_text.txt',record)
+
             if col_axis > row_axis:
                 col_axis -= 1
+                record.append(22)
+                writeToFile('\norm_to_text.txt',record)
+
             ret = add.reduce(abs(x), axis=row_axis).max(axis=col_axis)
+
         elif ord == Inf:
+            record.append(23)
+            writeToFile('\norm_to_text.txt',record)
+
             if row_axis > col_axis:
                 row_axis -= 1
+                record.append(24)
+                writeToFile('\norm_to_text.txt',record)
             ret = add.reduce(abs(x), axis=col_axis).max(axis=row_axis)
+
         elif ord == -1:
+            record.append(25)
+            writeToFile('\norm_to_text.txt',record)
+
             if col_axis > row_axis:
                 col_axis -= 1
+                record.append(26)
+                writeToFile('\norm_to_text.txt',record)
+
             ret = add.reduce(abs(x), axis=row_axis).min(axis=col_axis)
         elif ord == -Inf:
+            record.append(27)
+            writeToFile('\norm_to_text.txt',record)
+
             if row_axis > col_axis:
                 row_axis -= 1
+                record.append(28)
+                writeToFile('\norm_to_text.txt',record)
+
             ret = add.reduce(abs(x), axis=col_axis).min(axis=row_axis)
         elif ord in [None, 'fro', 'f']:
             ret = sqrt(add.reduce((x.conj() * x).real, axis=axis))
+            record.append(29)
+            writeToFile('\norm_to_text.txt',record)
+
         elif ord == 'nuc':
             ret = _multi_svd_norm(x, row_axis, col_axis, sum)
+            record.append(30)
+            writeToFile('\norm_to_text.txt',record)
+
         else:
+            record.append(31)
+            writeToFile('\norm_to_text.txt',record)
             raise ValueError("Invalid norm order for matrices.")
+
         if keepdims:
+            record.append(32)
+            writeToFile('\norm_to_text.txt',record)
             ret_shape = list(x.shape)
             ret_shape[axis[0]] = 1
             ret_shape[axis[1]] = 1
             ret = ret.reshape(ret_shape)
         return ret
     else:
+        record.append(33)
+        writeToFile('\norm_to_text.txt',record)
         raise ValueError("Improper number of dimensions to norm.")
 
 
