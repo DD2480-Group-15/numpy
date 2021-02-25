@@ -703,6 +703,40 @@ def _einsum_path_dispatcher(*operands, optimize=None, einsum_call=None):
     return operands
 
 
+def compute_the_path(path_type, input_list, indices, output_set,
+                     input_sets, dimension_dict, memory_arg):
+    # Compute the path
+    if (path_type is False) or (len(input_list) in [1, 2]) or (indices == output_set):
+        # Nothing to be optimized, leave it to einsum
+        path = [tuple(range(len(input_list)))]
+    elif path_type == "greedy":
+        path = _greedy_path(input_sets, output_set, dimension_dict, memory_arg)
+    elif path_type == "optimal":
+        path = _optimal_path(input_sets, output_set, dimension_dict, memory_arg)
+    elif path_type[0] == 'einsum_path':
+        path = path_type[1:]
+    else:
+        raise KeyError("Path name %s not found", path_type)
+
+    return path
+
+
+def build_out_broadcast_indices(tnum, char, dim, broadcast_indices, dimension_dict):
+    # Build out broadcast indices
+    if dim == 1:
+        broadcast_indices[tnum].append(char)
+
+    if char in dimension_dict.keys():
+        # For broadcasting cases we always want the largest dim size
+        if dimension_dict[char] == 1:
+            dimension_dict[char] = dim
+        elif dim not in (1, dimension_dict[char]):
+            raise ValueError("Size of label '%s' for operand %d (%d) "
+                             "does not match previous terms (%d)."
+                             % (char, tnum, dimension_dict[char], dim))
+    else:
+        dimension_dict[char] = dim
+
 @array_function_dispatch(_einsum_path_dispatcher, module='numpy')
 def einsum_path(*operands, optimize='greedy', einsum_call=False):
     """
@@ -865,19 +899,7 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
             dim = sh[cnum]
 
             # Build out broadcast indices
-            if dim == 1:
-                broadcast_indices[tnum].append(char)
-
-            if char in dimension_dict.keys():
-                # For broadcasting cases we always want the largest dim size
-                if dimension_dict[char] == 1:
-                    dimension_dict[char] = dim
-                elif dim not in (1, dimension_dict[char]):
-                    raise ValueError("Size of label '%s' for operand %d (%d) "
-                                     "does not match previous terms (%d)."
-                                     % (char, tnum, dimension_dict[char], dim))
-            else:
-                dimension_dict[char] = dim
+            build_out_broadcast_indices(tnum, char, dim, broadcast_indices, dimension_dict)
 
     # Convert broadcast inds to sets
     broadcast_indices = [set(x) for x in broadcast_indices]
@@ -898,18 +920,10 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
     naive_cost = _flop_count(indices, inner_product, len(input_list), dimension_dict)
 
     # Compute the path
-    if (path_type is False) or (len(input_list) in [1, 2]) or (indices == output_set):
-        # Nothing to be optimized, leave it to einsum
-        path = [tuple(range(len(input_list)))]
-    elif path_type == "greedy":
-        path = _greedy_path(input_sets, output_set, dimension_dict, memory_arg)
-    elif path_type == "optimal":
-        path = _optimal_path(input_sets, output_set, dimension_dict, memory_arg)
-    elif path_type[0] == 'einsum_path':
-        path = path_type[1:]
-    else:
-        raise KeyError("Path name %s not found", path_type)
-
+    """"refactor"""
+    path = compute_the_path(path_type, input_list, indices, output_set,
+                            input_sets, dimension_dict, memory_arg)
+    """"refactor"""
     cost_list, scale_list, size_list, contraction_list = [], [], [], []
 
     # Build contraction tuple (positions, gemm, einsum_str, remaining)
