@@ -36,4 +36,5 @@ def check_coverage(number_of_branches, method_name):
 
 if __name__ == '__main__':
     #write_it("einsum", ["1 ","2 ","3 "])
-    check_coverage(17, "einsum")
+    check_coverage(16, "einsum")
+    check_coverage(24, "einsum_path")
