@@ -61,6 +61,7 @@ sys.path.pop(0)
 import shutil
 import subprocess
 import time
+
 from argparse import ArgumentParser, REMAINDER
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__)))
@@ -365,6 +366,8 @@ def main(argv):
     finally:
         os.chdir(cwd)
 
+    check_coverage(16, "einsum")
+    check_coverage(24, "einsum_path")
     if isinstance(result, bool):
         sys.exit(0 if result else 1)
     elif result.wasSuccessful():
@@ -636,6 +639,33 @@ def lcov_generate():
         print("genhtml failed!")
     else:
         print("HTML output generated under build/lcov/")
+
+
+def check_coverage(number_of_branches, method_name):
+    f = open(os.path.join(ROOT_DIR, "doc", "coverage_docs", method_name + "_coverage.txt"), "r+")
+    thelist = list(set(f.read().split(" ")))
+    f.close()
+    print(thelist)
+    nmbr = number_of_branches
+    missing = []
+    for i in range(number_of_branches):
+        if str(i+1) not in thelist:
+            nmbr -= 1
+            missing.append(str(i+1))
+
+    coverage = (nmbr/number_of_branches)*100
+    f = open(os.path.join(ROOT_DIR, "doc", "coverage_docs", "coverage_total.txt"), "a+")
+    f.writelines("----------------------------------------------------------------\n")
+    f.writelines("Coverage for " + method_name + "\n")
+    f.writelines("Coverage is: " + str(coverage) + " percent\n")
+    if missing:
+        branches = ""
+        for i in range(len(missing)):
+            branches += "ID" + str(missing[i])
+            if not i+1 == len(missing):
+                branches += ", "
+        f.writelines("Missing branches are: " + branches)
+    f.writelines("\n----------------------------------------------------------------\n")
 
 
 if __name__ == "__main__":

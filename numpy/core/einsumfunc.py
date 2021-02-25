@@ -4,17 +4,25 @@ Implementation of optimized einsum.
 """
 import itertools
 import operator
+import os
 
 from numpy.core.multiarray import c_einsum
 from numpy.core.numeric import asanyarray, tensordot
 from numpy.core.overrides import array_function_dispatch
-from coverage_data.coverage_utils import write_it
+
 
 __all__ = ['einsum', 'einsum_path']
 
 einsum_symbols = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 einsum_symbols_set = set(einsum_symbols)
 
+def write_it(method_name, record):
+    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname
+                                    (os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))))))
+    filename = os.path.join(ROOT_DIR, "doc", "coverage_docs", method_name + "_coverage.txt")
+    f = open(filename, "a+")
+    f.writelines(record)
+    f.close()
 
 def _flop_count(idx_contraction, inner, num_terms, size_dictionary):
     """
@@ -814,31 +822,38 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
        5               cdef,gc->defg                            hd,defg->efgh
        5               defg,hd->efgh                               efgh->efgh
     """
-
+    record = []
     # Figure out what the path really is
     path_type = optimize
     if path_type is True:
+        record.append("1 ")
         path_type = 'greedy'
     if path_type is None:
+        record.append("2 ")
         path_type = False
 
     memory_limit = None
 
     # No optimization or a named path algorithm
     if (path_type is False) or isinstance(path_type, str):
+        record.append("3 ")
         pass
 
     # Given an explicit path
     elif len(path_type) and (path_type[0] == 'einsum_path'):
+        record.append("4 ")
         pass
 
     # Path tuple with memory limit
     elif ((len(path_type) == 2) and isinstance(path_type[0], str) and
             isinstance(path_type[1], (int, float))):
+        record.append("5 ")
         memory_limit = int(path_type[1])
         path_type = path_type[0]
 
     else:
+        record.append("6 ")
+        write_it("einsum_path", record)
         raise TypeError("Did not understand the path: %s" % str(path_type))
 
     # Hidden option, only einsum should call this
@@ -859,6 +874,8 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
     for tnum, term in enumerate(input_list):
         sh = operands[tnum].shape
         if len(sh) != len(term):
+            record.append("7 ")
+            write_it("einsum_path", record)
             raise ValueError("Einstein sum subscript %s does not contain the "
                              "correct number of indices for operand %d."
                              % (input_subscripts[tnum], tnum))
@@ -867,17 +884,23 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
 
             # Build out broadcast indices
             if dim == 1:
+                record.append("8 ")
                 broadcast_indices[tnum].append(char)
 
             if char in dimension_dict.keys():
+                record.append("9 ")
                 # For broadcasting cases we always want the largest dim size
                 if dimension_dict[char] == 1:
+                    record.append("10 ")
                     dimension_dict[char] = dim
                 elif dim not in (1, dimension_dict[char]):
+                    record.append("11 ")
+                    write_it("einsum_path", record)
                     raise ValueError("Size of label '%s' for operand %d (%d) "
                                      "does not match previous terms (%d)."
                                      % (char, tnum, dimension_dict[char], dim))
             else:
+                record.append("12 ")
                 dimension_dict[char] = dim
 
     # Convert broadcast inds to sets
@@ -889,8 +912,10 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
     max_size = max(size_list)
 
     if memory_limit is None:
+        record.append("13 ")
         memory_arg = max_size
     else:
+        record.append("14 ")
         memory_arg = memory_limit
 
     # Compute naive cost
@@ -900,15 +925,21 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
 
     # Compute the path
     if (path_type is False) or (len(input_list) in [1, 2]) or (indices == output_set):
+        record.append("15 ")
         # Nothing to be optimized, leave it to einsum
         path = [tuple(range(len(input_list)))]
     elif path_type == "greedy":
+        record.append("16 ")
         path = _greedy_path(input_sets, output_set, dimension_dict, memory_arg)
     elif path_type == "optimal":
+        record.append("17 ")
         path = _optimal_path(input_sets, output_set, dimension_dict, memory_arg)
     elif path_type[0] == 'einsum_path':
+        record.append("18 ")
         path = path_type[1:]
     else:
+        record.append("19 ")
+        write_it("einsum_path", record)
         raise KeyError("Path name %s not found", path_type)
 
     cost_list, scale_list, size_list, contraction_list = [], [], [], []
@@ -936,14 +967,18 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
 
         # If we're broadcasting, nix blas
         if not len(idx_removed & bcast):
+            record.append("20 ")
             do_blas = _can_dot(tmp_inputs, out_inds, idx_removed)
         else:
+            record.append("21")
             do_blas = False
 
         # Last contraction
         if (cnum - len(path)) == -1:
+            record.append("22 ")
             idx_result = output_subscript
         else:
+            record.append("23 ")
             sort_result = [(dimension_dict[ind], ind) for ind in out_inds]
             idx_result = "".join([x[1] for x in sorted(sort_result)])
 
@@ -957,6 +992,8 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
     opt_cost = sum(cost_list) + 1
 
     if einsum_call_arg:
+        record.append("24 ")
+        write_it("einsum_path", record)
         return (operands, contraction_list)
 
     # Return the path along with a nice string representation
@@ -984,6 +1021,8 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
         path_print += "\n%4d    %24s %40s" % path_run
 
     path = ['einsum_path'] + path
+    record.append("25 ")
+    write_it("einsum_path", record)
     return (path, path_print)
 
 
