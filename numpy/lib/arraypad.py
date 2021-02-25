@@ -19,7 +19,7 @@ __all__ = ['pad']
 
 def writeToFile(method_name, record):
     dirname = os.path.dirname(__file__)
-    filename = os.path.join(dirname, mehtod_name+ "_coverage.txt")
+    filename = os.path.join(dirname, method_name+ "_coverage.txt")
     f = open(filename, "a+")
     f.writelines(record)
     f.close()
