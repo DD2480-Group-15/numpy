@@ -26,6 +26,6 @@ Missing branches are: ID7, ID8, ID12, ID17, ID18
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 Coverage for tensordot
-Coverage is: 69.23076923076923 percent
-Missing branches are: ID8, ID10, ID12, ID13
+Coverage is: 84.61538461538461 percent
+Missing branches are: ID8, ID12
 ----------------------------------------------------------------

@@ -899,7 +899,7 @@ class TestTypes:
             promote_types = np.promote_types
 
         S = string_dtype
-        
+
         with pytest.warns(FutureWarning,
                 match="Promotion of numbers and bools to strings") as record:
             # Promote numeric with unsized string:
@@ -2362,8 +2362,8 @@ class TestClip:
                 base_shape=shape,
                 # Commenting out the min_dims line allows zero-dimensional arrays,
                 # and zero-dimensional arrays containing NaN make the test fail.
-                min_dims=1  
-                            
+                min_dims=1
+
             )
         )
         amin = data.draw(
@@ -3489,3 +3489,10 @@ class TestTensordot:
         arr_0d = np.array(1)
         ret = np.tensordot(arr_0d, arr_0d, ([], []))  # contracting no axes is well defined
         assert_array_equal(ret, arr_0d)
+
+        #more tests
+        a = np.arange(60).reshape((3, 4, 5))
+        c=  np.arange(12).reshape((3, 4))
+        b = np.arange(160).reshape((4, 5, 8))
+        assert_raises(ValueError, np.tensordot, a,c)
+        assert_raises(ValueError, np.tensordot, a, b, 1)
