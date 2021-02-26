@@ -1,3 +1,4 @@
+
 ----------------------------------------------------------------
 Coverage for einsum
 Coverage is: 100.0 percent
@@ -5,13 +6,13 @@ Coverage is: 100.0 percent
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 Coverage for einsum_path
-Coverage is: 83.33333333333334 percent
-Missing branches are: ID2, ID6, ID19, ID21
+Coverage is: 95.83333333333334 percent
+Missing branches are: ID21
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 Coverage for polyfit
-Coverage is: 52.94117647058824 percent
-Missing branches are: ID1, ID2, ID3, ID4, ID5, ID8, ID9, ID11
+Coverage is: 100.0 percent
+
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 Coverage for gradient
@@ -20,8 +21,8 @@ Missing branches are: ID11
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 Coverage for qr
-Coverage is: 68.42105263157895 percent
-Missing branches are: ID4, ID7, ID8, ID12, ID17, ID18
+Coverage is: 73.68421052631578 percent
+Missing branches are: ID7, ID8, ID12, ID17, ID18
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 Coverage for tensordot

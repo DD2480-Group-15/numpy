@@ -936,6 +936,11 @@ class TestEinsumPath:
             ret &= (comp[pos + 1] == benchmark[pos + 1])
         assert_(ret)
 
+    def test_exceptions(self):
+        path_test = self.build_operands('dcc,fce,ea,dbf->ab')
+        assert_raises(KeyError, np.einsum_path, *path_test, optimize="kalle")
+        assert_raises(TypeError, np.einsum_path, *path_test, optimize=range(10))
+
     def test_memory_contraints(self):
         # Ensure memory constraints are satisfied
 
@@ -1029,7 +1034,10 @@ class TestEinsumPath:
 
         path, path_str = np.einsum_path(*path_test, optimize=False)
         self.assert_path_equal(path, ['einsum_path', (0, 1, 2, 3)])
-
+        """I ADDED"""
+        path, path_str = np.einsum_path(*path_test, optimize=None)
+        self.assert_path_equal(path, ['einsum_path', (0, 1, 2, 3)])
+        """I ADDED"""
         path, path_str = np.einsum_path(*path_test, optimize=True)
         self.assert_path_equal(path, ['einsum_path', (1, 2), (0, 1), (0, 1)])
 
