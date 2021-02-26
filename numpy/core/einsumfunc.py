@@ -913,7 +913,9 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
             dim = sh[cnum]
 
             # Build out broadcast indices
+            """refactor"""
             build_out_broadcast_indices(tnum, char, dim, broadcast_indices, dimension_dict)
+            """refactor"""
 
     # Convert broadcast inds to sets
     broadcast_indices = [set(x) for x in broadcast_indices]
