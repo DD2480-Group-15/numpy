@@ -52,8 +52,8 @@ __all__ = [
     ]
 
 def write_it(method_name, record):
-    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname
-                                    (os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))))))
+    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname
+                                    (os.path.dirname(os.path.dirname(os.path.dirname(__file__))))))))))
     filename = os.path.join(ROOT_DIR, "doc", "coverage_docs", method_name + "_coverage.txt")
     f = open(filename, "a+")
     f.writelines(record)
@@ -4153,7 +4153,7 @@ def trapz(y, x=None, dx=1.0, axis=-1):
         a single axis by the trapezoidal rule. If 'y' is a 1-dimensional array,
         then the result is a float. If 'n' is greater than 1, then the result
         is an 'n-1' dimensional array.
-        
+
     See Also
     --------
     sum, cumsum

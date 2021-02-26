@@ -41,8 +41,8 @@ array_function_dispatch = functools.partial(
 fortran_int = intc
 
 def write_it(method_name, record):
-    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname
-                                    (os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))))))
+    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname
+                                    (os.path.dirname(os.path.dirname(os.path.dirname(__file__))))))))))
     filename = os.path.join(ROOT_DIR, "doc", "coverage_docs", method_name + "_coverage.txt")
     f = open(filename, "a+")
     f.writelines(record)
@@ -918,7 +918,7 @@ def qr(a, mode='reduced'):
             record.append("4 ")
             write_it("qr", record)
             raise ValueError(f"Unrecognized mode '{mode}'")
-      
+
     a, wrap = _makearray(a)
     _assert_2d(a)
     m, n = a.shape
@@ -972,7 +972,7 @@ def qr(a, mode='reduced'):
         if t != result_t :
             record.append("12 ")
             a = a.astype(result_t, copy=False)
-        
+
         write_it("qr", record)
         return wrap(a.T)
 
@@ -1016,7 +1016,7 @@ def qr(a, mode='reduced'):
 
     q = _fastCopyAndTranspose(result_t, q[:mc])
     r = _fastCopyAndTranspose(result_t, a[:, :mc])
-    
+
     record.append("19 ")
     write_it("qr", record)
     return wrap(q), wrap(triu(r))
@@ -2217,7 +2217,7 @@ def lstsq(a, b, rcond="warn"):
     equal to, or greater than its number of linearly independent columns).
     If `a` is square and of full rank, then `x` (but for round-off error)
     is the "exact" solution of the equation. Else, `x` minimizes the
-    Euclidean 2-norm :math:`||b - ax||`. If there are multiple minimizing 
+    Euclidean 2-norm :math:`||b - ax||`. If there are multiple minimizing
     solutions, the one with the smallest 2-norm :math:`||x||` is returned.
 
     Parameters
