@@ -472,21 +472,17 @@ def non_w_test(x, y, deg, rcond, full, w, cov):
 def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
     """
     Least squares polynomial fit.
-
     .. note::
        This forms part of the old polynomial API. Since version 1.4, the
        new polynomial API defined in `numpy.polynomial` is preferred.
        A summary of the differences can be found in the
        :doc:`transition guide </reference/routines.polynomials>`.
-
     Fit a polynomial ``p(x) = p[0] * x**deg + ... + p[deg]`` of degree `deg`
     to points `(x, y)`. Returns a vector of coefficients `p` that minimises
     the squared error in the order `deg`, `deg-1`, ... `0`.
-
     The `Polynomial.fit <numpy.polynomial.polynomial.Polynomial.fit>` class
     method is recommended for new code as it is more stable numerically. See
     the documentation of the method for more information.
-
     Parameters
     ----------
     x : array_like, shape (M,)
@@ -518,60 +514,46 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
         ``cov='unscaled'``, as is relevant for the case that the weights are
         1/sigma**2, with sigma known to be a reliable estimate of the
         uncertainty.
-
     Returns
     -------
     p : ndarray, shape (deg + 1,) or (deg + 1, K)
         Polynomial coefficients, highest power first.  If `y` was 2-D, the
         coefficients for `k`-th data set are in ``p[:,k]``.
-
     residuals, rank, singular_values, rcond
         Present only if `full` = True.  Residuals is sum of squared residuals
         of the least-squares fit, the effective rank of the scaled Vandermonde
         coefficient matrix, its singular values, and the specified value of
         `rcond`. For more details, see `linalg.lstsq`.
-
     V : ndarray, shape (M,M) or (M,M,K)
         Present only if `full` = False and `cov`=True.  The covariance
         matrix of the polynomial coefficient estimates.  The diagonal of
         this matrix are the variance estimates for each coefficient.  If y
         is a 2-D array, then the covariance matrix for the `k`-th data set
         are in ``V[:,:,k]``
-
-
     Warns
     -----
     RankWarning
         The rank of the coefficient matrix in the least-squares fit is
         deficient. The warning is only raised if `full` = False.
-
         The warnings can be turned off by
-
         >>> import warnings
         >>> warnings.simplefilter('ignore', np.RankWarning)
-
     See Also
     --------
     polyval : Compute polynomial values.
     linalg.lstsq : Computes a least-squares fit.
     scipy.interpolate.UnivariateSpline : Computes spline fits.
-
     Notes
     -----
     The solution minimizes the squared error
-
     .. math ::
         E = \\sum_{j=0}^k |p(x_j) - y_j|^2
-
     in the equations::
-
         x[0]**n * p[0] + ... + x[0] * p[n-1] + p[n] = y[0]
         x[1]**n * p[0] + ... + x[1] * p[n-1] + p[n] = y[1]
         ...
         x[k]**n * p[0] + ... + x[k] * p[n-1] + p[n] = y[k]
-
     The coefficient matrix of the coefficients `p` is a Vandermonde matrix.
-
     `polyfit` issues a `RankWarning` when the least-squares fit is badly
     conditioned. This implies that the best fit is not well-defined due
     to numerical error. The results may be improved by lowering the polynomial
@@ -579,20 +561,17 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
     can also be set to a value smaller than its default, but the resulting
     fit may be spurious: including contributions from the small singular
     values can add numerical noise to the result.
-
     Note that fitting polynomial coefficients is inherently badly conditioned
     when the degree of the polynomial is large or the interval of sample points
     is badly centered. The quality of the fit should always be checked in these
     cases. When polynomial fits are not satisfactory, splines may be a good
     alternative.
-
     References
     ----------
     .. [1] Wikipedia, "Curve fitting",
            https://en.wikipedia.org/wiki/Curve_fitting
     .. [2] Wikipedia, "Polynomial interpolation",
            https://en.wikipedia.org/wiki/Polynomial_interpolation
-
     Examples
     --------
     >>> import warnings
@@ -601,9 +580,7 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
     >>> z = np.polyfit(x, y, 3)
     >>> z
     array([ 0.08703704, -0.81349206,  1.69312169, -0.03968254]) # may vary
-
     It is convenient to use `poly1d` objects for dealing with polynomials:
-
     >>> p = np.poly1d(z)
     >>> p(0.5)
     0.6143849206349179 # may vary
@@ -611,9 +588,7 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
     -0.34732142857143039 # may vary
     >>> p(10)
     22.579365079365115 # may vary
-
     High-order polynomials may oscillate wildly:
-
     >>> with warnings.catch_warnings():
     ...     warnings.simplefilter('ignore', np.RankWarning)
     ...     p30 = np.poly1d(np.polyfit(x, y, 30))
@@ -624,47 +599,22 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
     -0.99999999999999445 # may vary
     >>> p30(4.5)
     -0.10547061179440398 # may vary
-
     Illustration:
-
     >>> import matplotlib.pyplot as plt
     >>> xp = np.linspace(-2, 6, 100)
     >>> _ = plt.plot(x, y, '.', xp, p(xp), '-', xp, p30(xp), '--')
     >>> plt.ylim(-2,2)
     (-2, 2)
     >>> plt.show()
-
     """
     order = int(deg) + 1
     x = NX.asarray(x) + 0.0
     y = NX.asarray(y) + 0.0
-    record=[]
+
     # check arguments.
-    """if deg < 0:
-        record.append(1)
-        writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt", record)
-        raise ValueError("expected deg >= 0")
-    if x.ndim != 1:
-        record.append(2)
-        writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt", record)
-        raise TypeError("expected 1D vector for x")
-    if x.size == 0:
-        record.append(3)
-        writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt", record)
-        raise TypeError("expected non-empty vector for x")
-    if y.ndim < 1 or y.ndim > 2:
-        record.append(4)
-        writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt", record)
-        raise TypeError("expected 1D or 2D array for y")
-    if x.shape[0] != y.shape[0]:
-        record.append(5)
-        writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt", record)
-        raise TypeError("expected x and y to have same length")
-"""
-    input_test_polyfit(x,y,deg,rcond,full,w,cov)
+    input_test_polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False)
     # set rcond
     if rcond is None:
-        record.append(6)
         rcond = len(x)*finfo(x.dtype).eps
 
     # set up least squares equation for powers of x
@@ -673,21 +623,10 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
 
     # apply weighting
     if w is not None:
-        record.append(7)
         w = NX.asarray(w) + 0.0
-        #split
-        non_w_test(x,y,deg,rcond,full,w,cov)
-        """if w.ndim != 1:
-            record.append(8)
-            writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt", record)
-            raise TypeError("expected a 1-d array for weights")
-        if w.shape[0] != y.shape[0]:
-            record.append(9)
-            writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt", record)
-            raise TypeError("expected w and y to have the same length")"""
+        non_w_test(x, y, deg, rcond, full, w, cov)
         lhs *= w[:, NX.newaxis]
         if rhs.ndim == 2:
-            record.append(10)
             rhs *= w[:, NX.newaxis]
         else:
             rhs *= w
@@ -700,24 +639,18 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
 
     # warn on rank reduction, which indicates an ill conditioned matrix
     if rank != order and not full:
-        record.append(11)
         msg = "Polyfit may be poorly conditioned"
         warnings.warn(msg, RankWarning, stacklevel=4)
 
     if full:
-        record.append(12)
         return c, resids, rank, s, rcond
     elif cov:
-        record.append(13)
         Vbase = inv(dot(lhs.T, lhs))
         Vbase /= NX.outer(scale, scale)
         if cov == "unscaled":
-            record.append(14)
             fac = 1
         else:
             if len(x) <= order:
-                record.append(15)
-                #writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt",record)
                 raise ValueError("the number of data points must exceed order "
                                  "to scale the covariance matrix")
             # note, this used to be: fac = resids / (len(x) - order - 2.0)
@@ -726,17 +659,11 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
             # (see gh-11196 and gh-11197)
             fac = resids / (len(x) - order)
         if y.ndim == 1:
-            record.append(16)
-            #writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt",record)
             return c, Vbase * fac
         else:
-            #writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt",record)
             return c, Vbase[:,:, NX.newaxis] * fac
     else:
-        record.append(17)
-        #writeLmk("/Users/zehuag/DD2480_A3/numpy/coveragepoly1.txt",record)
         return c
-
 
 def _polyval_dispatcher(p, x):
     return (p, x)
