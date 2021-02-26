@@ -982,10 +982,7 @@ def gradient(f, *varargs, axis=None, edge_order=1):
             return tuple(range(N))
         else:
             return  _nx.normalize_axis_tuple(axis, N)
-    #if axis is None:
-    #    axes = tuple(range(N))
-    #else:
-    #    axes = _nx.normalize_axis_tuple(axis, N)
+
     axes =get_axes(axis,N)
     len_axes = len(axes)
     n = len(varargs)
@@ -1025,36 +1022,6 @@ def gradient(f, *varargs, axis=None, edge_order=1):
         else:
             raise TypeError("invalid number of arguments")
     dx=get_dx(n,varargs,len_axes)
-    """if n == 0:
-        # no spacing argument - use 1 in all axes
-        dx = [1.0] * len_axes
-    elif n == 1 and np.ndim(varargs[0]) == 0:
-        # single scalar for all axes
-        dx = varargs * len_axes
-    elif n == len_axes:
-        # scalar or 1d array for each axis
-        dx = list(varargs)
-        for i, distances in enumerate(dx):
-            distances = np.asanyarray(distances)
-            if distances.ndim == 0:
-                continue
-            elif distances.ndim != 1:
-                raise ValueError("distances must be either scalars or 1d")
-            if len(distances) != f.shape[axes[i]]:
-                raise ValueError("when 1d, distances must match "
-                                 "the length of the corresponding dimension")
-            if np.issubdtype(distances.dtype, np.integer):
-                # Convert numpy integer types to float64 to avoid modular
-                # arithmetic in np.diff(distances).
-                distances = distances.astype(np.float64)
-            diffx = np.diff(distances)
-            # if distances are constant reduce to the scalar case
-            # since it brings a consistent speedup
-            if (diffx == diffx[0]).all():
-                diffx = diffx[0]
-            dx[i] = diffx
-    else:
-        raise TypeError("invalid number of arguments")"""
 
     if edge_order > 2:
         raise ValueError("'edge_order' greater than 2 not supported")
