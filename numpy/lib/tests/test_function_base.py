@@ -887,6 +887,13 @@ class TestDelete:
 
 
 class TestGradient:
+    
+    def test_edge(self):
+        f = np.array([0, 2., 3., 4., 5., 5.])
+        f = np.tile(f, (6, 1)) + f.reshape(-1, 1)
+        assert_raises(ValueError, gradient, f,1,axis=0,edge_order=3)
+        v = gradient(np.arange(5), 3.)
+        assert_array_almost_equal(gradient(np.arange(5.), 3.),v)
 
     def test_basic(self):
         v = [[1, 1], [3, 4]]
