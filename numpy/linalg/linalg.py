@@ -41,8 +41,8 @@ array_function_dispatch = functools.partial(
 fortran_int = intc
 
 def write_it(method_name, record):
-    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname
-                                    (os.path.dirname(os.path.dirname(os.path.dirname(__file__))))))))))
+    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname
+                                    (os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))))))
     filename = os.path.join(ROOT_DIR, "doc", "coverage_docs", method_name + "_coverage.txt")
     f = open(filename, "a+")
     f.writelines(record)
