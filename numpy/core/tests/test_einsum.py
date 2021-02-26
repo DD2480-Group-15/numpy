@@ -935,11 +935,14 @@ class TestEinsumPath:
             ret &= isinstance(comp[pos + 1], tuple)
             ret &= (comp[pos + 1] == benchmark[pos + 1])
         assert_(ret)
+        
+    def test_exceptions_1(self):
+        path_test = self.build_operands('dcc,fce,ea,dbf->ab')
+        assert_raises(TypeError, np.einsum_path, *path_test, optimize=range(10))
 
-    def test_exceptions(self):
+    def test_exceptions_2(self):
         path_test = self.build_operands('dcc,fce,ea,dbf->ab')
         assert_raises(KeyError, np.einsum_path, *path_test, optimize="kalle")
-        assert_raises(TypeError, np.einsum_path, *path_test, optimize=range(10))
 
     def test_memory_contraints(self):
         # Ensure memory constraints are satisfied
