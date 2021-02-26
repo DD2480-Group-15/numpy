@@ -1,6 +1,7 @@
 import functools
 import itertools
 import operator
+import os
 import sys
 import warnings
 import numbers
@@ -67,6 +68,13 @@ class ComplexWarning(RuntimeWarning):
     """
     pass
 
+def write_it(method_name, record):
+    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname
+                                    (os.path.dirname(os.path.dirname(os.path.dirname(__file__))))))))))
+    filename = os.path.join(ROOT_DIR, "doc", "coverage_docs", method_name + "_coverage.txt")
+    f = open(filename, "a+")
+    f.writelines(record)
+    f.close()
 
 def _zeros_like_dispatcher(a, dtype=None, order=None, subok=None, shape=None):
     return (a,)
@@ -710,7 +718,7 @@ def correlate(a, v, mode='valid'):
     --------
     convolve : Discrete, linear convolution of two one-dimensional sequences.
     multiarray.correlate : Old, no conjugate, version of correlate.
-    scipy.signal.correlate : uses FFT which has superior performance on large arrays. 
+    scipy.signal.correlate : uses FFT which has superior performance on large arrays.
 
     Notes
     -----
@@ -724,7 +732,7 @@ def correlate(a, v, mode='valid'):
     `numpy.correlate` may perform slowly in large arrays (i.e. n = 1e5) because it does
     not use the FFT to compute the convolution; in that case, `scipy.signal.correlate` might
     be preferable.
-    
+
 
     Examples
     --------
@@ -1081,23 +1089,31 @@ def tensordot(a, b, axes=2):
     array(['acccbbdddd', 'aaaaacccccccbbbbbbdddddddd'], dtype=object)
 
     """
+    record = []
     try:
-        iter(axes)
-    except Exception:
+        record.append("1 ")
+        iter(axes) #only works if axes is array_like (iterable?)
+    except Exception: #if axes is int, maxe axes_a/b lists
+        record.append("2 ")
         axes_a = list(range(-axes, 0))
         axes_b = list(range(0, axes))
-    else:
+    else: #if no exception
+        record.append("3 ")
         axes_a, axes_b = axes
     try:
+        record.append("4 ")
         na = len(axes_a)
         axes_a = list(axes_a)
     except TypeError:
+        record.append("5 ")
         axes_a = [axes_a]
         na = 1
     try:
+        record.append("6 ")
         nb = len(axes_b)
         axes_b = list(axes_b)
     except TypeError:
+        record.append("7 ")
         axes_b = [axes_b]
         nb = 1
 
@@ -1108,17 +1124,24 @@ def tensordot(a, b, axes=2):
     ndb = b.ndim
     equal = True
     if na != nb:
+        record.append("8 ")
         equal = False
     else:
+        record.append("9 ")
         for k in range(na):
             if as_[axes_a[k]] != bs[axes_b[k]]:
+                record.append("10 ")
                 equal = False
                 break
             if axes_a[k] < 0:
+                record.append("11 ")
                 axes_a[k] += nda
             if axes_b[k] < 0:
+                record.append("12 ")
                 axes_b[k] += ndb
     if not equal:
+        record.append("13 ")
+        write_it("tensordot", record)
         raise ValueError("shape-mismatch for sum")
 
     # Move the axes to sum over to the end of "a"
@@ -1142,6 +1165,7 @@ def tensordot(a, b, axes=2):
     at = a.transpose(newaxes_a).reshape(newshape_a)
     bt = b.transpose(newaxes_b).reshape(newshape_b)
     res = dot(at, bt)
+    write_it("tensordot", record)
     return res.reshape(olda + oldb)
 
 
@@ -1299,7 +1323,7 @@ def rollaxis(a, axis, start=0):
            +-------------------+----------------------+
            | ``arr.ndim + 1``  | raise ``AxisError``  |
            +-------------------+----------------------+
-           
+
         .. |vdots|   unicode:: U+22EE .. Vertical Ellipsis
 
     Returns
