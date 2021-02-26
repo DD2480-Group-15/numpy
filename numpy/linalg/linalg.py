@@ -769,6 +769,59 @@ def cholesky(a):
 def _qr_dispatcher(a, mode=None):
     return (a,)
 
+def check_qr_mode(mode):
+    if mode not in ('reduced', 'complete', 'r', 'raw'):
+        if mode in ('f', 'full'):
+            # 2013-04-01, 1.8
+            msg = "".join((
+                    "The 'full' option is deprecated in favor of 'reduced'.\n",
+                    "For backward compatibility let mode default."))
+            warnings.warn(msg, DeprecationWarning, stacklevel=3)
+            m = 'reduced'
+        elif mode in ('e', 'economic'):
+            # 2013-04-01, 1.8
+            msg = "The 'economic' option is deprecated."
+            warnings.warn(msg, DeprecationWarning, stacklevel=3)
+            m = 'economic'
+        else:
+            raise ValueError(f"Unrecognized mode '{mode}'")
+    else:
+        m = mode
+    
+    return m
+
+def check_complex_type(t):
+    if isComplexType(t):
+        lapack_routine = lapack_lite.zgeqrf
+        routine_name = 'zgeqrf'
+    else:
+        lapack_routine = lapack_lite.dgeqrf
+        routine_name = 'dgeqrf'
+    return lapack_routine, routine_name
+
+def check_complex_type2(t):
+    if isComplexType(t):
+        lapack_routine = lapack_lite.zungqr
+        routine_name = 'zungqr'
+    else:
+        lapack_routine = lapack_lite.dorgqr
+        routine_name = 'dorgqr'
+    return lapack_routine, routine_name
+
+def check_successful_lapack_routine(results, routine_name):
+    if results['info'] != 0:
+        raise LinAlgError('%s returns %d' % (routine_name, results['info']))
+
+# Generate q from a
+def generate_q(mode, m, n, mn, t, a):
+    if mode == 'complete' and m > n:
+        mc = m
+        q = empty((m, m), t)
+    else:
+        mc = mn
+        q = empty((n, m), t)
+    q[:n] = a
+    return q, mc
 
 @array_function_dispatch(_qr_dispatcher)
 def qr(a, mode='reduced'):
@@ -887,21 +940,7 @@ def qr(a, mode='reduced'):
     array([  1.1e-16,   1.0e+00])
 
     """
-    if mode not in ('reduced', 'complete', 'r', 'raw'):
-        if mode in ('f', 'full'):
-            # 2013-04-01, 1.8
-            msg = "".join((
-                    "The 'full' option is deprecated in favor of 'reduced'.\n",
-                    "For backward compatibility let mode default."))
-            warnings.warn(msg, DeprecationWarning, stacklevel=3)
-            mode = 'reduced'
-        elif mode in ('e', 'economic'):
-            # 2013-04-01, 1.8
-            msg = "The 'economic' option is deprecated."
-            warnings.warn(msg, DeprecationWarning, stacklevel=3)
-            mode = 'economic'
-        else:
-            raise ValueError(f"Unrecognized mode '{mode}'")
+    mode = check_qr_mode(mode)
 
     a, wrap = _makearray(a)
     _assert_2d(a)
@@ -912,26 +951,19 @@ def qr(a, mode='reduced'):
     mn = min(m, n)
     tau = zeros((mn,), t)
 
-    if isComplexType(t):
-        lapack_routine = lapack_lite.zgeqrf
-        routine_name = 'zgeqrf'
-    else:
-        lapack_routine = lapack_lite.dgeqrf
-        routine_name = 'dgeqrf'
+    lapack_routine, routine_name = check_complex_type(t)
 
     # calculate optimal size of work data 'work'
     lwork = 1
     work = zeros((lwork,), t)
     results = lapack_routine(m, n, a, max(1, m), tau, work, -1, 0)
-    if results['info'] != 0:
-        raise LinAlgError('%s returns %d' % (routine_name, results['info']))
+    check_successful_lapack_routine(results, routine_name)
 
     # do qr decomposition
     lwork = max(1, n, int(abs(work[0])))
     work = zeros((lwork,), t)
     results = lapack_routine(m, n, a, max(1, m), tau, work, lwork, 0)
-    if results['info'] != 0:
-        raise LinAlgError('%s returns %d' % (routine_name, results['info']))
+    check_successful_lapack_routine(results, routine_name)
 
     # handle modes that don't return q
     if mode == 'r':
@@ -946,35 +978,21 @@ def qr(a, mode='reduced'):
             a = a.astype(result_t, copy=False)
         return wrap(a.T)
 
-    #  generate q from a
-    if mode == 'complete' and m > n:
-        mc = m
-        q = empty((m, m), t)
-    else:
-        mc = mn
-        q = empty((n, m), t)
-    q[:n] = a
+    q, mc = generate_q(mode, m, n, mn, t, a)
 
-    if isComplexType(t):
-        lapack_routine = lapack_lite.zungqr
-        routine_name = 'zungqr'
-    else:
-        lapack_routine = lapack_lite.dorgqr
-        routine_name = 'dorgqr'
+    lapack_routine, routine_name = check_complex_type2(t)
 
     # determine optimal lwork
     lwork = 1
     work = zeros((lwork,), t)
     results = lapack_routine(m, mc, mn, q, max(1, m), tau, work, -1, 0)
-    if results['info'] != 0:
-        raise LinAlgError('%s returns %d' % (routine_name, results['info']))
+    check_successful_lapack_routine(results, routine_name)
 
     # compute q
     lwork = max(1, n, int(abs(work[0])))
     work = zeros((lwork,), t)
     results = lapack_routine(m, mc, mn, q, max(1, m), tau, work, lwork, 0)
-    if results['info'] != 0:
-        raise LinAlgError('%s returns %d' % (routine_name, results['info']))
+    check_successful_lapack_routine(results, routine_name)
 
     q = _fastCopyAndTranspose(result_t, q[:mc])
     r = _fastCopyAndTranspose(result_t, a[:, :mc])
