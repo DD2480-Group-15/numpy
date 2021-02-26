@@ -17,8 +17,8 @@ einsum_symbols = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 einsum_symbols_set = set(einsum_symbols)
 
 def write_it(method_name, record):
-    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname
-                                    (os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))))))
+    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname
+                                    (os.path.dirname(os.path.dirname(os.path.dirname(__file__))))))))))
     filename = os.path.join(ROOT_DIR, "doc", "coverage_docs", method_name + "_coverage.txt")
     f = open(filename, "a+")
     f.writelines(record)
@@ -806,7 +806,7 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
 
     >>> print(path_info[0])
     ['einsum_path', (0, 2), (0, 3), (0, 2), (0, 1)]
-    >>> print(path_info[1]) 
+    >>> print(path_info[1])
       Complete contraction:  ea,fb,abcd,gc,hd->efgh # may vary
              Naive scaling:  8
          Optimized scaling:  5

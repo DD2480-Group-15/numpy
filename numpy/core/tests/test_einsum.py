@@ -69,7 +69,6 @@ class TestEinsum:
             assert_raises(ValueError, np.einsum, "i%...", [0, 0], optimize=do_opt)
             assert_raises(ValueError, np.einsum, "...j$", [0, 0], optimize=do_opt)
             assert_raises(ValueError, np.einsum, "i->&", [0, 0], optimize=do_opt)
-
             # output subscripts must appear in input
             assert_raises(ValueError, np.einsum, "i->ij", [0, 0], optimize=do_opt)
 

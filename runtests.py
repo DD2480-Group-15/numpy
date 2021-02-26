@@ -371,7 +371,7 @@ def main(argv):
     check_coverage(17, "polyfit")
     check_coverage(23, "gradient")
     check_coverage(19, "qr")
-
+    check_coverage(13, "tensordot")
     if isinstance(result, bool):
         sys.exit(0 if result else 1)
     elif result.wasSuccessful():

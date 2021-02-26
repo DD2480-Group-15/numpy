@@ -11,14 +11,14 @@ from numpy.core.numeric import (
     ones, zeros, arange, concatenate, array, asarray, asanyarray, empty,
     ndarray, around, floor, ceil, take, dot, where, intp,
     integer, isscalar, absolute
-)
+    )
 from numpy.core.umath import (
     pi, add, arctan2, frompyfunc, cos, less_equal, sqrt, sin,
     mod, exp, not_equal, subtract
-)
+    )
 from numpy.core.fromnumeric import (
     ravel, nonzero, partition, mean, any, sum
-)
+    )
 from numpy.core.numerictypes import typecodes
 from numpy.core.overrides import set_module
 from numpy.core import overrides
@@ -27,7 +27,7 @@ from numpy.lib.twodim_base import diag
 from numpy.core.multiarray import (
     _insert, add_docstring, bincount, normalize_axis_index, _monotonicity,
     interp as compiled_interp, interp_complex as compiled_interp_complex
-)
+    )
 from numpy.core.umath import _add_newdoc_ufunc as add_newdoc_ufunc
 
 import builtins
@@ -35,8 +35,10 @@ import builtins
 # needed in this module for compatibility
 from numpy.lib.histograms import histogram, histogramdd
 
+
 array_function_dispatch = functools.partial(
     overrides.array_function_dispatch, module='numpy')
+
 
 __all__ = [
     'select', 'piecewise', 'trim_zeros', 'copy', 'iterable', 'percentile',
@@ -47,21 +49,15 @@ __all__ = [
     'blackman', 'kaiser', 'trapz', 'i0', 'add_newdoc', 'add_docstring',
     'meshgrid', 'delete', 'insert', 'append', 'interp', 'add_newdoc_ufunc',
     'quantile'
-]
-
+    ]
 
 def write_it(method_name, record):
-    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname
-                                                                                            (os.path.dirname(
-                                                                                                os.path.dirname(
-                                                                                                    os.path.dirname(
-                                                                                                        __file__)))))))))
+    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname
+                                    (os.path.dirname(os.path.dirname(os.path.dirname(__file__))))))))))
     filename = os.path.join(ROOT_DIR, "doc", "coverage_docs", method_name + "_coverage.txt")
     f = open(filename, "a+")
     f.writelines(record)
     f.close()
-
-
 def _rot90_dispatcher(m, k=None, axes=None):
     return (m,)
 
@@ -131,9 +127,9 @@ def rot90(m, k=1, axes=(0, 1)):
         raise ValueError("Axes must be different.")
 
     if (axes[0] >= m.ndim or axes[0] < -m.ndim
-            or axes[1] >= m.ndim or axes[1] < -m.ndim):
+        or axes[1] >= m.ndim or axes[1] < -m.ndim):
         raise ValueError("Axes={} out of range for array of ndim={}."
-                         .format(axes, m.ndim))
+            .format(axes, m.ndim))
 
     k %= 4
 
@@ -388,7 +384,7 @@ def average(a, axis=None, weights=None, returned=False):
 
     if weights is None:
         avg = a.mean(axis)
-        scl = avg.dtype.type(a.size / avg.size)
+        scl = avg.dtype.type(a.size/avg.size)
     else:
         wgt = np.asanyarray(weights)
 
@@ -411,7 +407,7 @@ def average(a, axis=None, weights=None, returned=False):
                     "Length of weights not compatible with specified axis.")
 
             # setup wgt to broadcast along axis
-            wgt = np.broadcast_to(wgt, (a.ndim - 1) * (1,) + wgt.shape)
+            wgt = np.broadcast_to(wgt, (a.ndim-1)*(1,) + wgt.shape)
             wgt = wgt.swapaxes(-1, axis)
 
         scl = wgt.sum(axis=axis, dtype=result_dtype)
@@ -419,7 +415,7 @@ def average(a, axis=None, weights=None, returned=False):
             raise ZeroDivisionError(
                 "Weights sum to zero, can't be normalized")
 
-        avg = np.multiply(a, wgt, dtype=result_dtype).sum(axis) / scl
+        avg = np.multiply(a, wgt, dtype=result_dtype).sum(axis)/scl
 
     if returned:
         if scl.shape != avg.shape:
@@ -613,7 +609,7 @@ def piecewise(x, condlist, funclist, *args, **kw):
     elif n != n2:
         raise ValueError(
             "with {} condition(s), either {} or {} functions are expected"
-                .format(n, n, n + 1)
+            .format(n, n, n+1)
         )
 
     y = zeros(x.shape, x.dtype)
@@ -802,7 +798,6 @@ def copy(a, order='K', subok=False):
     """
     return array(a, order=order, subok=subok, copy=True)
 
-
 # Basic operations
 
 
@@ -989,13 +984,13 @@ def gradient(f, *varargs, axis=None, edge_order=1):
 
     f = np.asanyarray(f)
     N = f.ndim  # number of dimensions
-    record = []
-    # number of branches
+    record=[]
+    #number of branches
     record.append("22 ")
     if edge_order > 2:
         record.append("11 ")
-        write_it("gradient", record)
-        # writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
+        write_it("gradient",record)
+        #writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
         raise ValueError("'edge_order' greater than 2 not supported")
 
     if axis is None:
@@ -1027,12 +1022,12 @@ def gradient(f, *varargs, axis=None, edge_order=1):
             elif distances.ndim != 1:
                 record.append("7 ")
                 write_it("gradient", record)
-                # writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt",record)
+                #writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt",record)
                 raise ValueError("distances must be either scalars or 1d")
             if len(distances) != f.shape[axes[i]]:
                 record.append("8 ")
                 write_it("gradient", record)
-                # writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
+                #writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
                 raise ValueError("when 1d, distances must match "
                                  "the length of the corresponding dimension")
             if np.issubdtype(distances.dtype, np.integer):
@@ -1049,8 +1044,9 @@ def gradient(f, *varargs, axis=None, edge_order=1):
             dx[i] = diffx
     else:
         write_it("gradient", record)
-        # writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
+        #writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
         raise TypeError("invalid number of arguments")
+
 
     # use central differences on interior and one-sided differences on the
     # endpoints. This preserves second order-accuracy over the full domain.
@@ -1058,10 +1054,10 @@ def gradient(f, *varargs, axis=None, edge_order=1):
     outvals = []
 
     # create slice objects --- initially all are [:, :, ..., :]
-    slice1 = [slice(None)] * N
-    slice2 = [slice(None)] * N
-    slice3 = [slice(None)] * N
-    slice4 = [slice(None)] * N
+    slice1 = [slice(None)]*N
+    slice2 = [slice(None)]*N
+    slice3 = [slice(None)]*N
+    slice4 = [slice(None)]*N
 
     otype = f.dtype
     if otype.type is np.datetime64:
@@ -1090,7 +1086,7 @@ def gradient(f, *varargs, axis=None, edge_order=1):
         if f.shape[axis] < edge_order + 1:
             record.append("17 ")
             write_it("gradient", record)
-            # writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
+            #writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
             raise ValueError(
                 "Shape of array too small to calculate a numerical gradient, "
                 "at least (edge_order + 1) elements are required.")
@@ -1112,7 +1108,7 @@ def gradient(f, *varargs, axis=None, edge_order=1):
         else:
             dx1 = ax_dx[0:-1]
             dx2 = ax_dx[1:]
-            a = -(dx2) / (dx1 * (dx1 + dx2))
+            a = -(dx2)/(dx1 * (dx1 + dx2))
             b = (dx2 - dx1) / (dx1 * dx2)
             c = dx1 / (dx2 * (dx1 + dx2))
             # fix the shape for broadcasting
@@ -1154,7 +1150,7 @@ def gradient(f, *varargs, axis=None, edge_order=1):
 
                 dx1 = ax_dx[0]
                 dx2 = ax_dx[1]
-                a = -(2. * dx1 + dx2) / (dx1 * (dx1 + dx2))
+                a = -(2. * dx1 + dx2)/(dx1 * (dx1 + dx2))
                 b = (dx1 + dx2) / (dx1 * dx2)
                 c = - dx1 / (dx2 * (dx1 + dx2))
             # 1D equivalent -- out[0] = a * f[0] + b * f[1] + c * f[2]
@@ -1189,12 +1185,12 @@ def gradient(f, *varargs, axis=None, edge_order=1):
     if len_axes == 1:
         record.append("22 ")
         write_it("gradient", record)
-        # writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
+        #writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
         return outvals[0]
     else:
         record.append("23 ")
         write_it("gradient", record)
-        # writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
+        #writeLmk("/Users/zehuag/dd2480a3/numpy/numpy/lib/gradient_record.txt", record)
         return outvals
 
 
@@ -1474,7 +1470,7 @@ def interp(x, xp, fp, left=None, right=None, period=None):
         asort_xp = np.argsort(xp)
         xp = xp[asort_xp]
         fp = fp[asort_xp]
-        xp = np.concatenate((xp[-1:] - period, xp, xp[0:1] + period))
+        xp = np.concatenate((xp[-1:]-period, xp, xp[0:1]+period))
         fp = np.concatenate((fp[-1:], fp, fp[0:1]))
 
     return interp_func(x, xp, fp, left, right)
@@ -1533,7 +1529,7 @@ def angle(z, deg=False):
 
     a = arctan2(zimag, zreal)
     if deg:
-        a *= 180 / pi
+        a *= 180/pi
     return a
 
 
@@ -1586,10 +1582,10 @@ def unwrap(p, discont=pi, axis=-1):
     p = asarray(p)
     nd = p.ndim
     dd = diff(p, axis=axis)
-    slice1 = [slice(None, None)] * nd  # full slices
+    slice1 = [slice(None, None)]*nd     # full slices
     slice1[axis] = slice(1, None)
     slice1 = tuple(slice1)
-    ddmod = mod(dd + pi, 2 * pi) - pi
+    ddmod = mod(dd + pi, 2*pi) - pi
     _nx.copyto(ddmod, pi, where=(ddmod == -pi) & (dd > 0))
     ph_correct = ddmod - dd
     _nx.copyto(ph_correct, 0, where=abs(dd) < discont)
@@ -2102,13 +2098,12 @@ class vectorize:
            [0., 0., 0., 1., 2., 1.]])
 
     """
-
     def __init__(self, pyfunc, otypes=None, doc=None, excluded=None,
                  cache=False, signature=None):
         self.pyfunc = pyfunc
         self.cache = cache
         self.signature = signature
-        self._ufunc = {}  # Caching to improve default performance
+        self._ufunc = {}    # Caching to improve default performance
 
         if doc is None:
             self.__doc__ = pyfunc.__doc__
@@ -2530,7 +2525,7 @@ def cov(m, y=None, rowvar=True, bias=False, ddof=None, fweights=None,
     elif aweights is None:
         fact = w_sum - ddof
     else:
-        fact = w_sum - ddof * sum(w * aweights) / w_sum
+        fact = w_sum - ddof*sum(w*aweights)/w_sum
 
     if fact <= 0:
         warnings.warn("Degrees of freedom <= 0 for slice",
@@ -2541,7 +2536,7 @@ def cov(m, y=None, rowvar=True, bias=False, ddof=None, fweights=None,
     if w is None:
         X_T = X.T
     else:
-        X_T = (X * w).T
+        X_T = (X*w).T
     c = dot(X, X_T.conj())
     c *= np.true_divide(1, fact)
     return c.squeeze()
@@ -2801,8 +2796,8 @@ def blackman(M):
         return array([])
     if M == 1:
         return ones(1, float)
-    n = arange(1 - M, M, 2)
-    return 0.42 + 0.5 * cos(pi * n / (M - 1)) + 0.08 * cos(2.0 * pi * n / (M - 1))
+    n = arange(1-M, M, 2)
+    return 0.42 + 0.5*cos(pi*n/(M-1)) + 0.08*cos(2.0*pi*n/(M-1))
 
 
 @set_module('numpy')
@@ -2910,8 +2905,8 @@ def bartlett(M):
         return array([])
     if M == 1:
         return ones(1, float)
-    n = arange(1 - M, M, 2)
-    return where(less_equal(n, 0), 1 + n / (M - 1), 1 - n / (M - 1))
+    n = arange(1-M, M, 2)
+    return where(less_equal(n, 0), 1 + n/(M-1), 1 - n/(M-1))
 
 
 @set_module('numpy')
@@ -3014,8 +3009,8 @@ def hanning(M):
         return array([])
     if M == 1:
         return ones(1, float)
-    n = arange(1 - M, M, 2)
-    return 0.5 + 0.5 * cos(pi * n / (M - 1))
+    n = arange(1-M, M, 2)
+    return 0.5 + 0.5*cos(pi*n/(M-1))
 
 
 @set_module('numpy')
@@ -3114,8 +3109,8 @@ def hamming(M):
         return array([])
     if M == 1:
         return ones(1, float)
-    n = arange(1 - M, M, 2)
-    return 0.54 + 0.46 * cos(pi * n / (M - 1))
+    n = arange(1-M, M, 2)
+    return 0.54 + 0.46*cos(pi*n/(M-1))
 
 
 ## Code from cephes for i0
@@ -3151,7 +3146,7 @@ _i0A = [
     1.71620901522208775349E-1,
     -3.04682672343198398683E-1,
     6.76795274409476084995E-1
-]
+    ]
 
 _i0B = [
     -7.23318048787475395456E-18,
@@ -3179,7 +3174,7 @@ _i0B = [
     6.88975834691682398426E-5,
     3.36911647825569408990E-3,
     8.04490411014108831608E-1
-]
+    ]
 
 
 def _chbevl(x, vals):
@@ -3189,17 +3184,17 @@ def _chbevl(x, vals):
     for i in range(1, len(vals)):
         b2 = b1
         b1 = b0
-        b0 = x * b1 - b2 + vals[i]
+        b0 = x*b1 - b2 + vals[i]
 
-    return 0.5 * (b0 - b2)
+    return 0.5*(b0 - b2)
 
 
 def _i0_1(x):
-    return exp(x) * _chbevl(x / 2.0 - 2, _i0A)
+    return exp(x) * _chbevl(x/2.0-2, _i0A)
 
 
 def _i0_2(x):
-    return exp(x) * _chbevl(32.0 / x - 2.0, _i0B) / sqrt(x)
+    return exp(x) * _chbevl(32.0/x - 2.0, _i0B) / sqrt(x)
 
 
 def _i0_dispatcher(x):
@@ -3264,7 +3259,6 @@ def i0(x):
         x = x.astype(float)
     x = np.abs(x)
     return piecewise(x, [x <= 8.0], [_i0_1, _i0_2])
-
 
 ## End of cephes code for i0
 
@@ -3393,8 +3387,8 @@ def kaiser(M, beta):
     if M == 1:
         return np.array([1.])
     n = arange(0, M)
-    alpha = (M - 1) / 2.0
-    return i0(beta * sqrt(1 - ((n - alpha) / alpha) ** 2.0)) / i0(float(beta))
+    alpha = (M-1)/2.0
+    return i0(beta * sqrt(1-((n-alpha)/alpha)**2.0))/i0(float(beta))
 
 
 def _sinc_dispatcher(x):
@@ -3479,7 +3473,7 @@ def sinc(x):
     """
     x = np.asanyarray(x)
     y = pi * where(x == 0, 1.0e-20, x)
-    return sin(y) / y
+    return sin(y)/y
 
 
 def _msort_dispatcher(a):
@@ -3704,9 +3698,9 @@ def _median(a, axis=None, out=None, overwrite_input=False):
     index = part.shape[axis] // 2
     if part.shape[axis] % 2 == 1:
         # index with slice to allow mean (below) to work
-        indexer[axis] = slice(index, index + 1)
+        indexer[axis] = slice(index, index+1)
     else:
-        indexer[axis] = slice(index - 1, index + 1)
+        indexer[axis] = slice(index-1, index+1)
     indexer = tuple(indexer)
 
     # Check if the array contains any nan's
@@ -4014,8 +4008,8 @@ def _lerp(a, b, t, out=None):
     """ Linearly interpolate from a to b by a factor of t """
     diff_b_a = subtract(b, a)
     # asanyarray is a stop-gap until gh-13105
-    lerp_interpolation = asanyarray(add(a, diff_b_a * t, out=out))
-    subtract(b, diff_b_a * (1 - t), out=lerp_interpolation, where=t >= 0.5)
+    lerp_interpolation = asanyarray(add(a, diff_b_a*t, out=out))
+    subtract(b, diff_b_a * (1 - t), out=lerp_interpolation, where=t>=0.5)
     if lerp_interpolation.ndim == 0 and out is None:
         lerp_interpolation = lerp_interpolation[()]  # unpack 0d arrays
     return lerp_interpolation
@@ -4206,14 +4200,14 @@ def trapz(y, x=None, dx=1.0, axis=-1):
         if x.ndim == 1:
             d = diff(x)
             # reshape to correct shape
-            shape = [1] * y.ndim
+            shape = [1]*y.ndim
             shape[axis] = d.shape[0]
             d = d.reshape(shape)
         else:
             d = diff(x, axis=axis)
     nd = y.ndim
-    slice1 = [slice(None)] * nd
-    slice2 = [slice(None)] * nd
+    slice1 = [slice(None)]*nd
+    slice2 = [slice(None)]*nd
     slice1[axis] = slice(1, None)
     slice2[axis] = slice(None, -1)
     try:
@@ -4222,7 +4216,7 @@ def trapz(y, x=None, dx=1.0, axis=-1):
         # Operations didn't work, cast to ndarray
         d = np.asarray(d)
         y = np.asarray(y)
-        ret = add.reduce(d * (y[tuple(slice1)] + y[tuple(slice2)]) / 2.0, axis)
+        ret = add.reduce(d * (y[tuple(slice1)]+y[tuple(slice2)])/2.0, axis)
     return ret
 
 
@@ -4448,7 +4442,7 @@ def delete(arr, obj, axis=None):
     else:
         axis = normalize_axis_index(axis, ndim)
 
-    slobj = [slice(None)] * ndim
+    slobj = [slice(None)]*ndim
     N = arr.shape[axis]
     newshape = list(arr.shape)
 
@@ -4481,18 +4475,18 @@ def delete(arr, obj, axis=None):
         if stop == N:
             pass
         else:
-            slobj[axis] = slice(stop - numtodel, None)
-            slobj2 = [slice(None)] * ndim
+            slobj[axis] = slice(stop-numtodel, None)
+            slobj2 = [slice(None)]*ndim
             slobj2[axis] = slice(stop, None)
             new[tuple(slobj)] = arr[tuple(slobj2)]
         # copy middle pieces
         if step == 1:
             pass
         else:  # use array indexing.
-            keep = ones(stop - start, dtype=bool)
-            keep[:stop - start:step] = False
-            slobj[axis] = slice(start, stop - numtodel)
-            slobj2 = [slice(None)] * ndim
+            keep = ones(stop-start, dtype=bool)
+            keep[:stop-start:step] = False
+            slobj[axis] = slice(start, stop-numtodel)
+            slobj2 = [slice(None)]*ndim
             slobj2[axis] = slice(start, stop)
             arr = arr[tuple(slobj2)]
             slobj2[axis] = keep
@@ -4515,8 +4509,8 @@ def delete(arr, obj, axis=None):
         slobj[axis] = slice(None, obj)
         new[tuple(slobj)] = arr[tuple(slobj)]
         slobj[axis] = slice(obj, None)
-        slobj2 = [slice(None)] * ndim
-        slobj2[axis] = slice(obj + 1, None)
+        slobj2 = [slice(None)]*ndim
+        slobj2[axis] = slice(obj+1, None)
         new[tuple(slobj)] = arr[tuple(slobj2)]
     else:
         _obj = obj
@@ -4656,7 +4650,7 @@ def insert(arr, obj, values, axis=None):
         axis = ndim - 1
     else:
         axis = normalize_axis_index(axis, ndim)
-    slobj = [slice(None)] * ndim
+    slobj = [slice(None)]*ndim
     N = arr.shape[axis]
     newshape = list(arr.shape)
 
@@ -4675,10 +4669,10 @@ def insert(arr, obj, values, axis=None):
                 "integer", FutureWarning, stacklevel=3)
             indices = indices.astype(intp)
             # Code after warning period:
-            # if obj.ndim != 1:
+            #if obj.ndim != 1:
             #    raise ValueError('boolean array argument obj to insert '
             #                     'must be one dimensional')
-            # indices = np.flatnonzero(obj)
+            #indices = np.flatnonzero(obj)
         elif indices.ndim > 1:
             raise ValueError(
                 "index array argument obj to insert must be one dimensional "
@@ -4705,9 +4699,9 @@ def insert(arr, obj, values, axis=None):
         new = empty(newshape, arr.dtype, arrorder)
         slobj[axis] = slice(None, index)
         new[tuple(slobj)] = arr[tuple(slobj)]
-        slobj[axis] = slice(index, index + numnew)
+        slobj[axis] = slice(index, index+numnew)
         new[tuple(slobj)] = values
-        slobj[axis] = slice(index + numnew, None)
+        slobj[axis] = slice(index+numnew, None)
         slobj2 = [slice(None)] * ndim
         slobj2[axis] = slice(index, None)
         new[tuple(slobj)] = arr[tuple(slobj2)]
@@ -4721,7 +4715,7 @@ def insert(arr, obj, values, axis=None):
     indices[indices < 0] += N
 
     numnew = len(indices)
-    order = indices.argsort(kind='mergesort')  # stable sort
+    order = indices.argsort(kind='mergesort')   # stable sort
     indices[order] += np.arange(numnew)
 
     newshape[axis] += numnew
@@ -4729,7 +4723,7 @@ def insert(arr, obj, values, axis=None):
     old_mask[indices] = False
 
     new = empty(newshape, arr.dtype, arrorder)
-    slobj2 = [slice(None)] * ndim
+    slobj2 = [slice(None)]*ndim
     slobj[axis] = indices
     slobj2[axis] = old_mask
     new[tuple(slobj)] = values
@@ -4798,7 +4792,7 @@ def append(arr, values, axis=None):
         if arr.ndim != 1:
             arr = arr.ravel()
         values = ravel(values)
-        axis = arr.ndim - 1
+        axis = arr.ndim-1
     return concatenate((arr, values), axis=axis)
 
 
